@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
+import { FinalCta } from "@/components/marketing/final-cta";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
 import {
   buildCategories,
   confidenceAudiences,
-  navItems,
   processPillars,
 } from "@/lib/site-content";
 
@@ -16,41 +17,7 @@ const proofPoints = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-warm-white text-ink">
-      <header className="sticky top-0 z-40 border-b border-ink/10 bg-warm-white/92 backdrop-blur">
-        <div className="section-shell flex h-20 items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/grandvista-logo.jpg"
-              alt="Grandvista"
-              width={58}
-              height={58}
-              className="h-12 w-12 object-contain"
-              priority
-            />
-            <div>
-              <p className="text-lg font-black tracking-[0.18em] text-navy">GRANDVISTA</p>
-              <p className="text-[0.63rem] font-bold uppercase tracking-[0.16em] text-steel">
-                America&apos;s Commercial Builder
-              </p>
-            </div>
-          </Link>
-          <nav className="hidden items-center gap-6 text-sm font-semibold text-ink/78 lg:flex">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-brand-red">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <Link
-            href="/start-a-project"
-            className="inline-flex h-11 items-center justify-center bg-navy px-5 text-sm font800 font-bold text-white transition hover:bg-brand-red"
-          >
-            Start a Project
-          </Link>
-        </div>
-      </header>
-
+    <MarketingShell>
       <section className="border-b border-ink/10 bg-ink text-white">
         <div className="section-shell grid min-h-[720px] gap-10 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
           <div className="max-w-3xl">
@@ -220,6 +187,14 @@ export default function Home() {
           ))}
         </div>
       </section>
-    </main>
+      <FinalCta
+        title="Bring the project behind the project into focus."
+        copy="Start with what the space needs to make possible, then build toward scope, schedule, coordination, and turnover with more clarity."
+        primaryHref="/start-a-project"
+        primaryLabel="Start a Project Conversation"
+        secondaryHref="/what-we-build"
+        secondaryLabel="Explore What We Build"
+      />
+    </MarketingShell>
   );
 }

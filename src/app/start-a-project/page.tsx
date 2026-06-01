@@ -1,3 +1,7 @@
+import { ClipboardCheck, FileSearch, MessageSquareText } from "lucide-react";
+import { FinalCta } from "@/components/marketing/final-cta";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { PageHero } from "@/components/marketing/page-hero";
 import { submitProjectInquiry } from "./actions";
 
 const projectTypes = [
@@ -37,6 +41,24 @@ const budgetOptions = [
 const fieldClass =
   "min-h-12 border border-ink/14 bg-white p-4 text-base text-ink outline-none transition placeholder:text-steel/70 focus:border-navy";
 
+const nextSteps = [
+  {
+    icon: FileSearch,
+    title: "Project review",
+    text: "Grandvista reviews project type, location, stage, budget range, timeline, and current constraints.",
+  },
+  {
+    icon: MessageSquareText,
+    title: "Clarifying conversation",
+    text: "The first conversation should tighten scope, risk, decision points, and what the space needs to make possible.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Practical next step",
+    text: "From there, the next move may be scope review, site conversation, plans discussion, or a more formal project path.",
+  },
+];
+
 export default function StartProjectPage({
   searchParams,
 }: {
@@ -45,11 +67,23 @@ export default function StartProjectPage({
   const statusPromise = searchParams ?? Promise.resolve({});
 
   return (
-    <main className="min-h-screen bg-warm-white text-ink">
+    <MarketingShell>
+      <PageHero
+        eyebrow="Start a Project"
+        title="Start with the project behind the project."
+        copy="This is not a free-estimate form. It is a project intake built to understand the business need, current stage, schedule pressure, budget context, and practical next decision."
+        secondaryHref="/how-we-work"
+        secondaryLabel="Review The Process"
+        stats={[
+          { label: "Captures", value: "Scope and stage" },
+          { label: "Purpose", value: "Better first conversation" },
+        ]}
+      />
+
       <section className="section-shell grid gap-12 py-20 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <p className="eyebrow">Start a Project</p>
-          <h1 className="mt-4 text-5xl font-black leading-tight">Start a project conversation.</h1>
+          <h2 className="mt-4 text-5xl font-black leading-tight">Share the context that matters.</h2>
           <p className="mt-6 text-lg leading-8 text-steel">
             This form is structured to qualify serious commercial opportunities and help Grandvista
             understand project stage, scope, schedule, and risk before the first call.
@@ -156,7 +190,34 @@ export default function StartProjectPage({
           </button>
         </form>
       </section>
-    </main>
+
+      <section className="border-y border-ink/10 bg-white py-20">
+        <div className="section-shell">
+          <p className="eyebrow">What Happens Next</p>
+          <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">
+            A stronger first conversation starts before the call.
+          </h2>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {nextSteps.map((step) => (
+              <article key={step.title} className="bg-warm-white p-7">
+                <step.icon className="text-brand-red" size={26} />
+                <h3 className="mt-6 text-2xl font-black">{step.title}</h3>
+                <p className="mt-4 leading-7 text-steel">{step.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <FinalCta
+        title="Still comparing how Grandvista thinks?"
+        copy="Review the process and build categories before submitting if you need more context."
+        primaryHref="/how-we-work"
+        primaryLabel="See How We Work"
+        secondaryHref="/what-we-build"
+        secondaryLabel="What We Build"
+      />
+    </MarketingShell>
   );
 }
 

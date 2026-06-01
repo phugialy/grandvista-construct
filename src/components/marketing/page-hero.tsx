@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+
+type HeroStat = {
+  label: string;
+  value: string;
+};
+
+type PageHeroProps = {
+  eyebrow: string;
+  title: string;
+  copy: string;
+  primaryHref?: string;
+  primaryLabel?: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+  stats?: HeroStat[];
+};
+
+export function PageHero({
+  eyebrow,
+  title,
+  copy,
+  primaryHref,
+  primaryLabel,
+  secondaryHref,
+  secondaryLabel,
+  stats = [],
+}: PageHeroProps) {
+  return (
+    <section className="border-b border-white/10 bg-ink text-white">
+      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+        <div>
+          <p className="eyebrow">{eyebrow}</p>
+          <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
+            {title}
+          </h1>
+          <p className="mt-7 max-w-3xl text-lg leading-8 text-white/72">{copy}</p>
+          {(primaryHref || secondaryHref) && (
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              {primaryHref && primaryLabel ? (
+                <Link
+                  href={primaryHref}
+                  className="inline-flex h-12 items-center justify-center gap-2 bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
+                >
+                  {primaryLabel} <ArrowUpRight size={18} />
+                </Link>
+              ) : null}
+              {secondaryHref && secondaryLabel ? (
+                <Link
+                  href={secondaryHref}
+                  className="inline-flex h-12 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
+                >
+                  {secondaryLabel}
+                </Link>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <div className="relative min-h-[430px] overflow-hidden border border-white/14 bg-[#151925]">
+          <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
+            {Array.from({ length: 36 }).map((_, index) => (
+              <div key={index} className="border border-white/[0.035]" />
+            ))}
+          </div>
+          <div className="absolute left-8 right-12 top-8 h-32 bg-concrete/85" />
+          <div className="absolute bottom-24 left-8 right-20 h-44 bg-white/10" />
+          <div className="absolute bottom-8 left-24 right-8 h-24 bg-brand-red" />
+          <div className="absolute right-8 top-24 w-24 border-t-[190px] border-l-[60px] border-t-white/22 border-l-transparent" />
+          <div className="absolute inset-x-8 bottom-8 grid gap-3 sm:grid-cols-2">
+            {stats.map((stat) => (
+              <div key={stat.label} className="bg-ink/88 p-5">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
+                  {stat.label}
+                </p>
+                <p className="mt-2 text-xl font-black">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
