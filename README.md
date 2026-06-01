@@ -47,3 +47,7 @@ npm run build
 ## Deployment
 
 The Vercel project is connected to the GitHub repository. Pushes to `main` are intended to drive the production deployment workflow, while other branches can be used for previews.
+
+## Admin
+
+The lead dashboard is available at `/admin/login`. It uses the server-only `ADMIN_ACCESS_TOKEN` environment variable and sets an HTTP-only session cookie for `/admin` routes.

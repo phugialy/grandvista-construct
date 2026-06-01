@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { buildCategories } from "@/lib/site-content";
+import { getProjectCategories } from "@/lib/supabase/public-data";
 
-export default function WhatWeBuildPage() {
+export default async function WhatWeBuildPage() {
+  const categories = await getProjectCategories();
+
   return (
     <main className="min-h-screen bg-warm-white text-ink">
       <section className="section-shell py-20">
@@ -15,10 +17,10 @@ export default function WhatWeBuildPage() {
           common risks, and clear Grandvista delivery language for each type of work.
         </p>
         <div className="mt-12 grid gap-5 md:grid-cols-2">
-          {buildCategories.map((category) => (
-            <article key={category.title} className="border border-ink/12 bg-white p-7">
+          {categories.map((category) => (
+            <article key={category.slug} className="border border-ink/12 bg-white p-7">
               <h2 className="text-2xl font-black">{category.title}</h2>
-              <p className="mt-4 leading-7 text-steel">{category.text}</p>
+              <p className="mt-4 leading-7 text-steel">{category.summary}</p>
             </article>
           ))}
         </div>
