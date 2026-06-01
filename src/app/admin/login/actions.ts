@@ -11,5 +11,5 @@ export async function loginAdmin(formData: FormData) {
   }
 
   await setAdminSession();
-  redirect("/admin/leads");
+  redirect("/admin");
 }

@@ -56,7 +56,7 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
       <section className="bg-white">
         <div className="section-shell py-10">
           <div className="relative min-h-[420px] overflow-hidden bg-ink">
-            {hero?.url ? (
+            {hero?.url && hero.media_type === "image" ? (
               <Image
                 alt={hero.alt ?? project.title}
                 className="object-cover"
@@ -65,6 +65,8 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
                 sizes="100vw"
                 src={hero.url}
               />
+            ) : hero?.url && hero.media_type === "video" ? (
+              <video className="absolute inset-0 h-full w-full object-cover" controls muted playsInline src={hero.url} />
             ) : (
               <div className="absolute inset-0 grid grid-cols-6 grid-rows-6">
                 {Array.from({ length: 36 }).map((_, index) => (
@@ -78,11 +80,12 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
 
       <section className="section-shell py-20">
         <div className="grid gap-5 lg:grid-cols-2">
-          <StoryBlock title="Project Intent" text={project.project_intent} />
-          <StoryBlock title="What Was At Stake" text={project.stakes} />
+          <StoryBlock title="Project Summary" text={project.summary ?? project.project_intent} />
+          <StoryBlock title="Client Goal" text={project.client_goal} />
+          <StoryBlock title="Project Pressure" text={joinSignals(project.project_pressures) ?? project.stakes} />
           <StoryBlock title="Construction Challenge" text={project.challenge} />
           <StoryBlock title="Delivery Approach" text={project.delivery_approach} />
-          <StoryBlock title="Built Outcome" text={project.built_outcome} wide />
+          <StoryBlock title="Built Outcome" text={joinSignals(project.built_outcomes) ?? project.built_outcome} wide />
         </div>
       </section>
 
@@ -97,13 +100,17 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
               {gallery.map((media) => (
                 <figure key={media.id} className="border border-ink/12 bg-warm-white p-4">
                   <div className="relative min-h-80 overflow-hidden bg-ink">
-                    <Image
-                      alt={media.alt ?? project.title}
-                      className="object-cover"
-                      fill
-                      sizes="(min-width: 768px) 50vw, 100vw"
-                      src={media.url}
-                    />
+                    {media.media_type === "image" ? (
+                      <Image
+                        alt={media.alt ?? project.title}
+                        className="object-cover"
+                        fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        src={media.url}
+                      />
+                    ) : (
+                      <video className="absolute inset-0 h-full w-full object-cover" controls muted playsInline src={media.url} />
+                    )}
                   </div>
                   {media.caption ? (
                     <figcaption className="mt-4 text-sm font-bold text-steel">{media.caption}</figcaption>
@@ -145,4 +152,8 @@ function StoryBlock({ title, text, wide = false }: { title: string; text: string
       </p>
     </article>
   );
+}
+
+function joinSignals(items: string[] | null) {
+  return items && items.length > 0 ? items.join(", ") : null;
 }

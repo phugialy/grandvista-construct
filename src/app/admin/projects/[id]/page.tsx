@@ -18,7 +18,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
   const { data: project, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,published",
+      "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
     )
     .eq("id", id)
     .single();
@@ -29,12 +29,18 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
 
   const { data: media } = await supabase
     .from("project_media")
-    .select("role,url,alt")
+    .select("role,media_asset_id")
     .eq("project_id", id)
     .order("sort_order", { ascending: true });
 
   const hero = media?.find((item) => item.role === "hero");
-  const gallery = media?.find((item) => item.role === "gallery");
+  const gallery = media?.filter((item) => item.role === "gallery").map((item) => item.media_asset_id).filter(Boolean) ?? [];
+  const { data: mediaAssets } = await supabase
+    .from("media_assets")
+    .select("id,public_url,media_type,alt_text,caption,tags")
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(48);
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
@@ -46,11 +52,10 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
         <ProjectForm
           project={{
             ...project,
-            hero_url: hero?.url,
-            hero_alt: hero?.alt,
-            gallery_url: gallery?.url,
-            gallery_alt: gallery?.alt,
+            hero_asset_id: hero?.media_asset_id,
+            gallery_asset_ids: gallery,
           }}
+          mediaAssets={mediaAssets ?? []}
         />
       </section>
     </main>

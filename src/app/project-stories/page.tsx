@@ -128,13 +128,20 @@ export default async function ProjectStoriesPage() {
           {projects.map((project) => (
             <article key={project.id} className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
               <div className="relative min-h-64 overflow-hidden bg-ink p-6 text-white">
-                {project.project_media?.find((media) => media.role === "hero")?.url ? (
+                {project.project_media?.find((media) => media.role === "hero" && media.media_type === "image")?.url ? (
                   <Image
-                    alt={project.project_media.find((media) => media.role === "hero")?.alt ?? project.title}
+                    alt={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.alt ?? project.title}
                     className="object-cover opacity-80"
                     fill
                     sizes="(min-width: 1024px) 38vw, 100vw"
-                    src={project.project_media.find((media) => media.role === "hero")?.url ?? ""}
+                    src={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.url ?? ""}
+                  />
+                ) : project.project_media?.find((media) => media.role === "hero" && media.media_type === "video")?.url ? (
+                  <video
+                    className="absolute inset-0 h-full w-full object-cover opacity-80"
+                    muted
+                    playsInline
+                    src={project.project_media.find((media) => media.role === "hero" && media.media_type === "video")?.url}
                   />
                 ) : (
                   <>
@@ -151,7 +158,7 @@ export default async function ProjectStoriesPage() {
                 </p>
                 <h3 className="mt-4 text-3xl font-black">{project.title}</h3>
                 <p className="mt-5 leading-8 text-steel">
-                  {project.project_intent ?? project.stakes ?? project.built_outcome}
+                  {project.summary ?? project.project_intent ?? project.stakes ?? project.built_outcome}
                 </p>
                 <Link
                   className="mt-7 inline-flex items-center gap-2 bg-navy px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"

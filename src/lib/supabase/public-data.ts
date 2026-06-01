@@ -16,6 +16,13 @@ export type PublishedProject = {
   location: string | null;
   client_type: string | null;
   project_type: string | null;
+  summary: string | null;
+  client_goal: string | null;
+  project_pressures: string[] | null;
+  built_outcomes: string[] | null;
+  tags: string[] | null;
+  seo_title: string | null;
+  seo_description: string | null;
   project_intent: string | null;
   stakes: string | null;
   challenge: string | null;
@@ -60,7 +67,7 @@ export const getPublishedProjects = unstable_cache(
     const { data, error } = await supabase
       .from("projects")
       .select(
-        "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+        "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
       )
       .eq("published", true)
       .order("featured", { ascending: false })
@@ -82,7 +89,7 @@ export async function getPublishedProjectBySlug(slug: string) {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+      "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
     )
     .eq("slug", slug)
     .eq("published", true)
