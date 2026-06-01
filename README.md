@@ -43,3 +43,7 @@ Never commit database passwords, service role keys, or private API keys.
 npm run lint
 npm run build
 ```
+
+## Deployment
+
+The Vercel project is connected to the GitHub repository. Pushes to `main` are intended to drive the production deployment workflow, while other branches can be used for previews.
