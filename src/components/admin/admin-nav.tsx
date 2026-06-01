@@ -19,6 +19,9 @@ export function AdminNav({ title, description }: { title: string; description: s
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/media">
               Media
             </Link>
+            <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/website">
+              Website
+            </Link>
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/projects">
               Projects
             </Link>

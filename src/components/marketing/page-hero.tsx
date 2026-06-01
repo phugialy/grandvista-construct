@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { ManagedMedia } from "./managed-media";
 
 type HeroStat = {
   label: string;
@@ -15,6 +16,11 @@ type PageHeroProps = {
   secondaryHref?: string;
   secondaryLabel?: string;
   stats?: HeroStat[];
+  visualMedia?: {
+    public_url: string;
+    media_type: "image" | "video";
+    alt_text: string | null;
+  } | null;
 };
 
 export function PageHero({
@@ -26,6 +32,7 @@ export function PageHero({
   secondaryHref,
   secondaryLabel,
   stats = [],
+  visualMedia,
 }: PageHeroProps) {
   return (
     <section className="border-b border-white/10 bg-ink text-white">
@@ -59,15 +66,24 @@ export function PageHero({
         </div>
 
         <div className="relative min-h-[430px] overflow-hidden border border-white/14 bg-[#151925]">
-          <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
-            {Array.from({ length: 36 }).map((_, index) => (
-              <div key={index} className="border border-white/[0.035]" />
-            ))}
-          </div>
-          <div className="absolute left-8 right-12 top-8 h-32 bg-concrete/85" />
-          <div className="absolute bottom-24 left-8 right-20 h-44 bg-white/10" />
-          <div className="absolute bottom-8 left-24 right-8 h-24 bg-brand-red" />
-          <div className="absolute right-8 top-24 w-24 border-t-[190px] border-l-[60px] border-t-white/22 border-l-transparent" />
+          {visualMedia ? (
+            <>
+              <ManagedMedia altFallback={title} className="object-cover opacity-82" media={visualMedia} priority />
+              <div className="absolute inset-0 bg-ink/34" />
+            </>
+          ) : (
+            <>
+              <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
+                {Array.from({ length: 36 }).map((_, index) => (
+                  <div key={index} className="border border-white/[0.035]" />
+                ))}
+              </div>
+              <div className="absolute left-8 right-12 top-8 h-32 bg-concrete/85" />
+              <div className="absolute bottom-24 left-8 right-20 h-44 bg-white/10" />
+              <div className="absolute bottom-8 left-24 right-8 h-24 bg-brand-red" />
+              <div className="absolute right-8 top-24 w-24 border-t-[190px] border-l-[60px] border-t-white/22 border-l-transparent" />
+            </>
+          )}
           <div className="absolute inset-x-8 bottom-8 grid gap-3 sm:grid-cols-2">
             {stats.map((stat) => (
               <div key={stat.label} className="bg-ink/88 p-5">

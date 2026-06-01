@@ -2,12 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import {
   buildCategories,
   confidenceAudiences,
   processPillars,
 } from "@/lib/site-content";
+import { getSiteSections } from "@/lib/supabase/public-data";
 
 const proofPoints = [
   { label: "Audience", value: "Owners, operators, developers" },
@@ -15,7 +17,11 @@ const proofPoints = [
   { label: "Standard", value: "Planning, field discipline, turnover" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const sections = await getSiteSections();
+  const heroSection = sections["home.hero"];
+  const proofSection = sections["home.proof"];
+
   return (
     <MarketingShell>
       <section className="border-b border-ink/10 bg-ink text-white">
@@ -23,12 +29,11 @@ export default function Home() {
           <div className="max-w-3xl">
             <p className="eyebrow mb-6">Commercial construction with direction</p>
             <h1 className="max-w-4xl text-5xl font-black leading-[0.96] tracking-normal sm:text-7xl lg:text-8xl">
-              Important Projects Deserve a Builder With Direction
+              {heroSection?.headline ?? "Important Projects Deserve a Builder With Direction"}
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-8 text-white/74 sm:text-xl">
-              Grandvista helps owners, operators, and project teams move from business need to
-              usable built environment through clear planning, field coordination, and accountable
-              execution.
+              {heroSection?.body ??
+                "Grandvista helps owners, operators, and project teams move from business need to usable built environment through clear planning, field coordination, and accountable execution."}
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -47,21 +52,36 @@ export default function Home() {
           </div>
 
           <div className="relative min-h-[520px] overflow-hidden border border-white/14 bg-[#151925]">
-            <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
-              {Array.from({ length: 36 }).map((_, index) => (
-                <div key={index} className="border border-white/[0.035]" />
-              ))}
-            </div>
-            <div className="absolute inset-x-8 top-8 h-44 bg-concrete/85" />
-            <div className="absolute bottom-20 left-8 right-20 h-52 bg-white/10" />
-            <div className="absolute bottom-8 left-20 right-8 h-28 bg-brand-red" />
-            <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
+            {heroSection?.media_assets ? (
+              <>
+                <ManagedMedia
+                  altFallback={heroSection.label}
+                  className="object-cover opacity-82"
+                  media={heroSection.media_assets}
+                  priority
+                  sizes="(min-width: 1024px) 44vw, 100vw"
+                />
+                <div className="absolute inset-0 bg-ink/38" />
+              </>
+            ) : (
+              <>
+                <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
+                  {Array.from({ length: 36 }).map((_, index) => (
+                    <div key={index} className="border border-white/[0.035]" />
+                  ))}
+                </div>
+                <div className="absolute inset-x-8 top-8 h-44 bg-concrete/85" />
+                <div className="absolute bottom-20 left-8 right-20 h-52 bg-white/10" />
+                <div className="absolute bottom-8 left-20 right-8 h-28 bg-brand-red" />
+                <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
+              </>
+            )}
             <div className="absolute left-8 top-8 max-w-xs bg-ink/88 p-6">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-red">
                 Media system ready
               </p>
               <p className="mt-4 text-2xl font-black leading-tight">
-                Built to carry jobsite clips, project photography, and case-study proof.
+                {proofSection?.body ?? "Built to carry jobsite clips, project photography, and case-study proof."}
               </p>
             </div>
             <div className="absolute bottom-8 left-8 bg-white p-5 text-ink">

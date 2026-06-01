@@ -42,6 +42,31 @@ export type ProjectMedia = {
   sort_order: number;
 };
 
+export type SiteSection = {
+  id: string;
+  section_key: string;
+  page_slug: string;
+  placement: string;
+  label: string;
+  description: string;
+  headline: string | null;
+  body: string | null;
+  media_asset_id: string | null;
+  media_assets: {
+    id: string;
+    public_url: string;
+    media_type: "image" | "video";
+    alt_text: string | null;
+    caption: string | null;
+  } | null;
+};
+
+type RawSiteSection = Omit<SiteSection, "media_assets"> & {
+  media_assets:
+    | SiteSection["media_assets"]
+    | SiteSection["media_assets"][];
+};
+
 export const getProjectCategories = unstable_cache(
   async () => {
     const supabase = getSupabaseServiceClient();
@@ -102,3 +127,32 @@ export async function getPublishedProjectBySlug(slug: string) {
 
   return data as PublishedProject;
 }
+
+export const getSiteSections = unstable_cache(
+  async () => {
+    const supabase = getSupabaseServiceClient();
+    const { data, error } = await supabase
+      .from("site_sections")
+      .select(
+        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,media_assets(id,public_url,media_type,alt_text,caption)",
+      )
+      .eq("published", true)
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      console.error("Failed to load site sections", error);
+      return {};
+    }
+
+    const sections = ((data ?? []) as RawSiteSection[]).map((section) => ({
+      ...section,
+      media_assets: Array.isArray(section.media_assets)
+        ? section.media_assets[0] ?? null
+        : section.media_assets,
+    }));
+
+    return Object.fromEntries(sections.map((section) => [section.section_key, section]));
+  },
+  ["site-sections"],
+  { revalidate: 300 },
+);

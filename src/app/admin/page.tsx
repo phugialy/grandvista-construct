@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ImageIcon, Inbox, Layers, PenLine } from "lucide-react";
+import { ImageIcon, Inbox, Layers, PanelsTopLeft, PenLine } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -51,6 +51,12 @@ export default async function AdminDashboardPage() {
             href="/admin/projects"
             icon={<Layers size={24} />}
             title="Manage Projects"
+          />
+          <HubCard
+            copy="Choose homepage and page-level visuals without touching code or layout."
+            href="/admin/website"
+            icon={<PanelsTopLeft size={24} />}
+            title="Website Sections"
           />
           <HubCard
             copy="Review incoming project conversations and qualify the next opportunity."

@@ -2,10 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Camera, FileText, MapPin } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { projectStoryFields } from "@/lib/site-content";
-import { getPublishedProjects } from "@/lib/supabase/public-data";
+import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
 
 const filters = [
   "Commercial Interiors",
@@ -18,14 +19,19 @@ const filters = [
 ];
 
 export default async function ProjectStoriesPage() {
-  const projects = await getPublishedProjects();
+  const [projects, sections] = await Promise.all([getPublishedProjects(), getSiteSections()]);
+  const heroSection = sections["project-stories.hero"];
+  const emptySection = sections["project-stories.empty"];
 
   return (
     <MarketingShell>
       <PageHero
         eyebrow="Project Stories"
-        title="Built work with business purpose."
-        copy="The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome."
+        title={heroSection?.headline ?? "Built work with business purpose."}
+        copy={
+          heroSection?.body ??
+          "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome."
+        }
         primaryHref="/start-a-project"
         primaryLabel="Talk Through a Project"
         secondaryHref="/how-we-work"
@@ -34,6 +40,7 @@ export default async function ProjectStoriesPage() {
           { label: "Proof", value: "Intent to outcome" },
           { label: "Format", value: "Case studies over galleries" },
         ]}
+        visualMedia={heroSection?.media_assets}
       />
 
       <section className="section-shell py-20">
@@ -100,26 +107,31 @@ export default async function ProjectStoriesPage() {
           {projects.length === 0 ? (
             <article className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
               <div className="relative min-h-64 overflow-hidden bg-ink">
-                <div className="absolute inset-0 grid grid-cols-5 grid-rows-5">
-                  {Array.from({ length: 25 }).map((_, index) => (
-                    <div key={index} className="border border-white/[0.04]" />
-                  ))}
-                </div>
-                <Camera className="absolute bottom-6 left-6 text-brand-red" size={36} />
-                <div className="absolute right-6 top-6 h-28 w-36 bg-white/14" />
-                <div className="absolute bottom-6 right-6 h-20 w-44 bg-brand-red" />
+                {emptySection?.media_assets ? (
+                  <ManagedEmptyMedia media={emptySection.media_assets} />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 grid grid-cols-5 grid-rows-5">
+                      {Array.from({ length: 25 }).map((_, index) => (
+                        <div key={index} className="border border-white/[0.04]" />
+                      ))}
+                    </div>
+                    <Camera className="absolute bottom-6 left-6 text-brand-red" size={36} />
+                    <div className="absolute right-6 top-6 h-28 w-36 bg-white/14" />
+                    <div className="absolute bottom-6 right-6 h-20 w-44 bg-brand-red" />
+                  </>
+                )}
               </div>
               <div>
                 <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
                   Prepared for CMS content
                 </p>
                 <h3 className="mt-4 text-3xl font-black leading-tight">
-                  Published case studies will appear here.
+                  {emptySection?.headline ?? "Published case studies will appear here."}
                 </h3>
                 <p className="mt-5 leading-8 text-steel">
-                  Each story should reframe the work from a basic project label into a business
-                  outcome: opening readiness, operational flow, inspection coordination, field
-                  constraints, and usable built value.
+                  {emptySection?.body ??
+                    "Each story should reframe the work from a basic project label into a business outcome: opening readiness, operational flow, inspection coordination, field constraints, and usable built value."}
                 </p>
               </div>
             </article>
@@ -181,5 +193,22 @@ export default async function ProjectStoriesPage() {
         secondaryLabel="See Our Direction"
       />
     </MarketingShell>
+  );
+}
+
+function ManagedEmptyMedia({
+  media,
+}: {
+  media: {
+    public_url: string;
+    media_type: "image" | "video";
+    alt_text: string | null;
+  };
+}) {
+  return (
+    <>
+      <ManagedMedia altFallback="Project story proof media" className="object-cover opacity-82" media={media} />
+      <div className="absolute inset-0 bg-ink/26" />
+    </>
   );
 }
