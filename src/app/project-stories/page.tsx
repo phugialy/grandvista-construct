@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Camera, FileText, MapPin } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -126,11 +127,23 @@ export default async function ProjectStoriesPage() {
 
           {projects.map((project) => (
             <article key={project.id} className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
-              <div className="min-h-64 bg-ink p-6 text-white">
-                <FileText className="text-brand-red" size={30} />
-                <p className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-white/60">
-                  Project Story
-                </p>
+              <div className="relative min-h-64 overflow-hidden bg-ink p-6 text-white">
+                {project.project_media?.find((media) => media.role === "hero")?.url ? (
+                  <Image
+                    alt={project.project_media.find((media) => media.role === "hero")?.alt ?? project.title}
+                    className="object-cover opacity-80"
+                    fill
+                    sizes="(min-width: 1024px) 38vw, 100vw"
+                    src={project.project_media.find((media) => media.role === "hero")?.url ?? ""}
+                  />
+                ) : (
+                  <>
+                    <FileText className="text-brand-red" size={30} />
+                    <p className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-white/60">
+                      Project Story
+                    </p>
+                  </>
+                )}
               </div>
               <div>
                 <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
@@ -140,6 +153,12 @@ export default async function ProjectStoriesPage() {
                 <p className="mt-5 leading-8 text-steel">
                   {project.project_intent ?? project.stakes ?? project.built_outcome}
                 </p>
+                <Link
+                  className="mt-7 inline-flex items-center gap-2 bg-navy px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
+                  href={`/project-stories/${project.slug}`}
+                >
+                  View Story <ArrowUpRight size={16} />
+                </Link>
               </div>
             </article>
           ))}

@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
-import { logoutAdmin, updateLeadStatus } from "./actions";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { updateLeadStatus } from "./actions";
 
 type Lead = {
   id: string;
@@ -50,22 +51,10 @@ export default async function AdminLeadsPage() {
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
-      <section className="border-b border-ink/10 bg-ink text-white">
-        <div className="section-shell flex flex-col justify-between gap-6 py-10 md:flex-row md:items-end">
-          <div>
-            <p className="eyebrow">Grandvista Admin</p>
-            <h1 className="mt-3 text-4xl font-black leading-tight">Project inquiries</h1>
-            <p className="mt-3 text-white/66">
-              Review incoming project conversations and track follow-up status.
-            </p>
-          </div>
-          <form action={logoutAdmin}>
-            <button className="border border-white/24 px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white hover:border-brand-red hover:text-brand-red">
-              Log Out
-            </button>
-          </form>
-        </div>
-      </section>
+      <AdminNav
+        title="Project inquiries"
+        description="Review incoming project conversations and track follow-up status."
+      />
 
       <section className="section-shell py-10">
         <div className="grid gap-4 md:grid-cols-3">

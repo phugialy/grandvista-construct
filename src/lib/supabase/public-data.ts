@@ -22,6 +22,17 @@ export type PublishedProject = {
   delivery_approach: string | null;
   built_outcome: string | null;
   featured: boolean;
+  project_media?: ProjectMedia[];
+};
+
+export type ProjectMedia = {
+  id: string;
+  media_type: "image" | "video";
+  role: "hero" | "gallery" | "before" | "during" | "after";
+  url: string;
+  alt: string | null;
+  caption: string | null;
+  sort_order: number;
 };
 
 export const getProjectCategories = unstable_cache(
@@ -49,7 +60,7 @@ export const getPublishedProjects = unstable_cache(
     const { data, error } = await supabase
       .from("projects")
       .select(
-        "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured",
+        "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
       )
       .eq("published", true)
       .order("featured", { ascending: false })
@@ -65,3 +76,22 @@ export const getPublishedProjects = unstable_cache(
   ["published-projects"],
   { revalidate: 300 },
 );
+
+export async function getPublishedProjectBySlug(slug: string) {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select(
+      "id,slug,title,location,client_type,project_type,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+    )
+    .eq("slug", slug)
+    .eq("published", true)
+    .single();
+
+  if (error) {
+    console.error("Failed to load project story", error);
+    return null;
+  }
+
+  return data as PublishedProject;
+}
