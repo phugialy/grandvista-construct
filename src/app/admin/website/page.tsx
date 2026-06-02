@@ -24,6 +24,22 @@ type MediaAsset = {
   tags: string[];
 };
 
+const pagePreviewLinks: Record<string, string> = {
+  company: "/company",
+  "how-we-work": "/how-we-work",
+  home: "/",
+  "our-direction": "/our-direction",
+  "project-stories": "/project-stories",
+  "what-we-build": "/what-we-build",
+};
+
+const placementGuidance: Record<string, string> = {
+  "home.hero": "Recommended: wide image or short clip, 16:9 or wider.",
+  "home.proof": "Recommended: field detail or finished-space proof, 4:3 or 16:9.",
+  "project-stories.hero": "Recommended: strong construction/project image, 16:9.",
+  "project-stories.empty": "Recommended: branded proof image until real case studies are published.",
+};
+
 const inputClass =
   "min-h-12 border border-ink/14 bg-white p-4 text-base text-ink outline-none transition placeholder:text-steel/70 focus:border-navy";
 
@@ -103,6 +119,9 @@ function SectionForm({ mediaAssets, section }: { mediaAssets: MediaAsset[]; sect
         </p>
         <h3 className="mt-2 text-2xl font-black">{section.label}</h3>
         <p className="mt-3 max-w-2xl leading-7 text-steel">{section.description}</p>
+        <p className="mt-3 text-sm font-black uppercase tracking-[0.1em] text-navy">
+          {placementGuidance[section.section_key] ?? "Recommended: clear commercial construction media."}
+        </p>
 
         <div className="mt-6 grid gap-4">
           <label className="grid gap-2 font-bold">
@@ -150,6 +169,13 @@ function SectionForm({ mediaAssets, section }: { mediaAssets: MediaAsset[]; sect
         >
           Save Placement
         </button>
+        <Link
+          className="border border-ink/14 px-5 py-3 text-center text-sm font-black uppercase tracking-[0.08em] text-ink hover:border-brand-red hover:text-brand-red"
+          href={pagePreviewLinks[section.page_slug] ?? "/"}
+          target="_blank"
+        >
+          Preview Page
+        </Link>
       </aside>
     </form>
   );

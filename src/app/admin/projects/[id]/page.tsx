@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -49,6 +50,17 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
         description="Shape the project narrative and publish it when ready."
       />
       <section className="section-shell py-10">
+        {project.published ? (
+          <div className="mb-5 flex justify-end">
+            <Link
+              className="border border-ink/14 bg-white px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-ink hover:border-brand-red hover:text-brand-red"
+              href={`/project-stories/${project.slug}`}
+              target="_blank"
+            >
+              Preview Published Story
+            </Link>
+          </div>
+        ) : null}
         <ProjectForm
           project={{
             ...project,

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { sendLeadNotification } from "@/lib/email/lead-notification";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -28,7 +29,7 @@ export async function submitProjectInquiry(formData: FormData) {
   }
 
   const supabase = getSupabaseServiceClient();
-  const { error } = await supabase.from("leads").insert({
+  const leadPayload = {
     name,
     email,
     company: nullableString(formData, "company"),
@@ -46,12 +47,25 @@ export async function submitProjectInquiry(formData: FormData) {
     utm_source: nullableString(formData, "utm_source"),
     utm_medium: nullableString(formData, "utm_medium"),
     utm_campaign: nullableString(formData, "utm_campaign"),
-  });
+  };
+  const { error } = await supabase.from("leads").insert(leadPayload);
 
   if (error) {
     console.error("Lead submission failed", error);
     redirect("/start-a-project?status=error");
   }
+
+  await sendLeadNotification({
+    name,
+    company: leadPayload.company,
+    email,
+    phone: leadPayload.phone,
+    projectLocation: leadPayload.project_location,
+    projectType,
+    timeline: leadPayload.estimated_timeline,
+    budget: leadPayload.estimated_budget_range,
+    description: leadPayload.description,
+  });
 
   redirect("/start-a-project/thanks");
 }

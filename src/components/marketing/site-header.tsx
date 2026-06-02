@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/site-content";
+import { TrackedLink } from "./tracked-link";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -48,12 +49,13 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <Link
+        <TrackedLink
+          analyticsLabel="Header Start a Project"
           href="/start-a-project"
           className="hidden h-11 items-center justify-center bg-navy px-5 text-sm font-black text-white transition hover:bg-brand-red sm:inline-flex"
         >
           Start a Project
-        </Link>
+        </TrackedLink>
       </div>
 
       <div className="border-t border-ink/8 xl:hidden">
@@ -67,9 +69,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Link href="/start-a-project" className="shrink-0 text-navy">
+          <TrackedLink analyticsLabel="Mobile Header Start" href="/start-a-project" className="shrink-0 text-navy">
             Start
-          </Link>
+          </TrackedLink>
         </nav>
       </div>
     </header>

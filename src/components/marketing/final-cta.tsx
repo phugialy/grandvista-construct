@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { TrackedLink } from "./tracked-link";
 
 type FinalCtaProps = {
   eyebrow?: string;
@@ -29,19 +29,21 @@ export function FinalCta({
           <p className="mt-5 max-w-2xl leading-8 text-white/70">{copy}</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link
+          <TrackedLink
+            analyticsLabel={primaryLabel}
             href={primaryHref}
             className="inline-flex h-12 items-center justify-center gap-2 bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
           >
             {primaryLabel} <ArrowUpRight size={18} />
-          </Link>
+          </TrackedLink>
           {secondaryHref && secondaryLabel ? (
-            <Link
+            <TrackedLink
+              analyticsLabel={secondaryLabel}
               href={secondaryHref}
               className="inline-flex h-12 items-center justify-center border border-white/24 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
             >
               {secondaryLabel}
-            </Link>
+            </TrackedLink>
           ) : null}
         </div>
       </div>
