@@ -9,7 +9,6 @@ const allowedTypes = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
-  "image/heic",
   "video/mp4",
   "video/webm",
   "video/quicktime",
@@ -87,7 +86,7 @@ function getString(formData: FormData, key: string) {
 
 function validateFile(file: File) {
   if (!allowedTypes.has(file.type)) {
-    return "This file type is not ready for website upload. Use JPG, PNG, WebP, MP4, WebM, or MOV.";
+    return "This file type is not ready for website upload. Use JPG, PNG, WebP, MP4, WebM, or MOV. iPhone HEIC photos should be prepared by the admin uploader first.";
   }
 
   if (file.type.startsWith("image/") && file.size > maxImageBytes) {
