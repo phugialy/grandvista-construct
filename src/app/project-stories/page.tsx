@@ -6,7 +6,7 @@ import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { projectStoryFields } from "@/lib/site-content";
-import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
+import { getPublishedProjects, getSiteSections, type PublishedProject } from "@/lib/supabase/public-data";
 
 const filters = [
   "Commercial Interiors",
@@ -22,25 +22,47 @@ export default async function ProjectStoriesPage() {
   const [projects, sections] = await Promise.all([getPublishedProjects(), getSiteSections()]);
   const heroSection = sections["project-stories.hero"];
   const emptySection = sections["project-stories.empty"];
+  const featuredHeroProject =
+    heroSection?.content_source === "featured_project" && heroSection.featured_project?.slug
+      ? heroSection.featured_project
+      : null;
+  const featuredHeroMedia = featuredHeroProject ? getProjectHeroMedia(featuredHeroProject) : null;
 
   return (
     <MarketingShell>
       <PageHero
-        eyebrow="Project Stories"
-        title={heroSection?.headline ?? "Built work with business purpose."}
+        eyebrow={featuredHeroProject ? "Featured Project Story" : "Project Stories"}
+        title={heroSection?.headline ?? featuredHeroProject?.title ?? "Built work with business purpose."}
         copy={
           heroSection?.body ??
+          getProjectSummary(featuredHeroProject) ??
           "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome."
         }
-        primaryHref="/start-a-project"
-        primaryLabel="Talk Through a Project"
-        secondaryHref="/how-we-work"
-        secondaryLabel="See The Process"
+        primaryHref={featuredHeroProject ? `/project-stories/${featuredHeroProject.slug}` : "/start-a-project"}
+        primaryLabel={featuredHeroProject ? "View Story" : "Talk Through a Project"}
+        secondaryHref={featuredHeroProject ? "/start-a-project" : "/how-we-work"}
+        secondaryLabel={featuredHeroProject ? "Start a Similar Project" : "See The Process"}
         stats={[
-          { label: "Proof", value: "Intent to outcome" },
-          { label: "Format", value: "Case studies over galleries" },
+          {
+            label: featuredHeroProject ? "Project Type" : "Proof",
+            value: featuredHeroProject?.project_type ?? "Intent to outcome",
+          },
+          {
+            label: featuredHeroProject ? "Location" : "Format",
+            value: featuredHeroProject?.location ?? "Case studies over galleries",
+          },
         ]}
-        visualMedia={heroSection?.media_assets}
+        visualMedia={
+          featuredHeroMedia
+            ? {
+                public_url: featuredHeroMedia.url,
+                media_type: featuredHeroMedia.media_type,
+                alt_text: featuredHeroMedia.alt,
+              }
+            : heroSection?.content_source === "fallback"
+              ? null
+              : heroSection?.media_assets
+        }
       />
 
       <section className="section-shell py-20">
@@ -194,6 +216,14 @@ export default async function ProjectStoriesPage() {
       />
     </MarketingShell>
   );
+}
+
+function getProjectHeroMedia(project: PublishedProject | null) {
+  return project?.project_media?.find((media) => media.role === "hero") ?? project?.project_media?.[0] ?? null;
+}
+
+function getProjectSummary(project: PublishedProject | null) {
+  return project?.summary ?? project?.project_intent ?? project?.stakes ?? project?.built_outcome ?? null;
 }
 
 function ManagedEmptyMedia({

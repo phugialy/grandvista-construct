@@ -14,6 +14,8 @@ type SiteSection = {
   headline: string | null;
   body: string | null;
   media_asset_id: string | null;
+  content_source: "manual" | "featured_project" | "fallback";
+  featured_project_id: string | null;
 };
 
 type MediaAsset = {
@@ -22,6 +24,13 @@ type MediaAsset = {
   media_type: "image" | "video";
   alt_text: string | null;
   tags: string[];
+};
+
+type ProjectOption = {
+  id: string;
+  title: string;
+  project_type: string | null;
+  location: string | null;
 };
 
 const pagePreviewLinks: Record<string, string> = {
@@ -54,10 +63,10 @@ export default async function AdminWebsitePage({
   const { status } = searchParams ? await searchParams : {};
 
   const supabase = getSupabaseServiceClient();
-  const [{ data: sections }, { data: mediaAssets }] = await Promise.all([
+  const [{ data: sections }, { data: mediaAssets }, { data: projects }] = await Promise.all([
     supabase
       .from("site_sections")
-      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id")
+      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id")
       .order("sort_order", { ascending: true }),
     supabase
       .from("media_assets")
@@ -65,6 +74,11 @@ export default async function AdminWebsitePage({
       .eq("status", "ready")
       .order("created_at", { ascending: false })
       .limit(36),
+    supabase
+      .from("projects")
+      .select("id,title,project_type,location")
+      .eq("published", true)
+      .order("updated_at", { ascending: false }),
   ]);
 
   return (
@@ -98,7 +112,12 @@ export default async function AdminWebsitePage({
 
         <div className="grid gap-6">
           {((sections ?? []) as SiteSection[]).map((section) => (
-            <SectionForm key={section.id} mediaAssets={(mediaAssets ?? []) as MediaAsset[]} section={section} />
+            <SectionForm
+              key={section.id}
+              mediaAssets={(mediaAssets ?? []) as MediaAsset[]}
+              projects={(projects ?? []) as ProjectOption[]}
+              section={section}
+            />
           ))}
         </div>
       </section>
@@ -106,8 +125,19 @@ export default async function AdminWebsitePage({
   );
 }
 
-function SectionForm({ mediaAssets, section }: { mediaAssets: MediaAsset[]; section: SiteSection }) {
+function SectionForm({
+  mediaAssets,
+  projects,
+  section,
+}: {
+  mediaAssets: MediaAsset[];
+  projects: ProjectOption[];
+  section: SiteSection;
+}) {
   const selectedMedia = mediaAssets.find((asset) => asset.id === section.media_asset_id);
+  const selectedProject = projects.find((project) => project.id === section.featured_project_id);
+  const supportsFeaturedProject = section.section_key === "project-stories.hero";
+  const source = section.content_source ?? "manual";
 
   return (
     <form action={updateSiteSection} className="grid gap-5 border border-ink/12 bg-white p-6 lg:grid-cols-[1fr_420px]">
@@ -122,6 +152,40 @@ function SectionForm({ mediaAssets, section }: { mediaAssets: MediaAsset[]; sect
         <p className="mt-3 text-sm font-black uppercase tracking-[0.1em] text-navy">
           {placementGuidance[section.section_key] ?? "Recommended: clear commercial construction media."}
         </p>
+
+        <fieldset className="mt-6 grid gap-3 border border-ink/10 bg-warm-white p-4">
+          <legend className="px-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+            Content source
+          </legend>
+          <label className="flex items-center gap-3 text-sm font-black">
+            <input defaultChecked={source === "manual"} name="content_source" type="radio" value="manual" />
+            Manual media and copy
+          </label>
+          {supportsFeaturedProject ? (
+            <label className="flex items-center gap-3 text-sm font-black">
+              <input defaultChecked={source === "featured_project"} name="content_source" type="radio" value="featured_project" />
+              Featured project story
+            </label>
+          ) : null}
+          <label className="flex items-center gap-3 text-sm font-black">
+            <input defaultChecked={source === "fallback"} name="content_source" type="radio" value="fallback" />
+            Fallback design
+          </label>
+        </fieldset>
+
+        {supportsFeaturedProject ? (
+          <label className="mt-5 grid gap-2 font-bold">
+            Featured project
+            <select className={inputClass} defaultValue={section.featured_project_id ?? ""} name="featured_project_id">
+              <option value="">Choose published project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.title} {[project.project_type, project.location].filter(Boolean).join(" / ")}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
         <div className="mt-6 grid gap-4">
           <label className="grid gap-2 font-bold">
@@ -139,7 +203,16 @@ function SectionForm({ mediaAssets, section }: { mediaAssets: MediaAsset[]; sect
         <div className="border border-ink/10 bg-warm-white p-4">
           <p className="text-sm font-black uppercase tracking-[0.12em] text-steel">Current media</p>
           <div className="mt-3 aspect-[4/3] overflow-hidden bg-ink">
-            {selectedMedia ? <MediaPreview asset={selectedMedia} /> : <div className="grid h-full place-items-center text-sm font-bold text-white/60">Fallback design</div>}
+            {source === "featured_project" && selectedProject ? (
+              <div className="grid h-full place-items-center p-6 text-center text-white">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">Featured story</p>
+                <p className="mt-3 text-2xl font-black">{selectedProject.title}</p>
+              </div>
+            ) : selectedMedia && source === "manual" ? (
+              <MediaPreview asset={selectedMedia} />
+            ) : (
+              <div className="grid h-full place-items-center text-sm font-bold text-white/60">Fallback design</div>
+            )}
           </div>
         </div>
 

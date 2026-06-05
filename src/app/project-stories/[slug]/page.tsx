@@ -22,6 +22,20 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
 
   const hero = project.project_media?.find((media) => media.role === "hero");
   const gallery = project.project_media?.filter((media) => media.role !== "hero") ?? [];
+  const kicker = [project.project_type, project.location].filter(Boolean).join(" / ");
+  const facts = [
+    { label: "Client Type", value: project.client_type },
+    { label: "Project Type", value: project.project_type },
+    { label: "Location", value: project.location },
+  ].filter((fact) => hasContent(fact.value));
+  const storyBlocks = [
+    { title: "Project Summary", text: project.summary ?? project.project_intent },
+    { title: "Client Goal", text: project.client_goal },
+    { title: "Project Pressure", text: joinSignals(project.project_pressures) ?? project.stakes },
+    { title: "Construction Challenge", text: project.challenge },
+    { title: "Delivery Approach", text: project.delivery_approach },
+    { title: "Built Outcome", text: joinSignals(project.built_outcomes) ?? project.built_outcome, wide: true },
+  ].filter((block) => hasContent(block.text));
 
   return (
     <MarketingShell>
@@ -39,16 +53,19 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
               <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
                 {project.title}
               </h1>
-              <p className="mt-6 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-                <MapPin size={16} /> {[project.project_type, project.location].filter(Boolean).join(" / ")}
-              </p>
+              {kicker ? (
+                <p className="mt-6 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+                  <MapPin size={16} /> {kicker}
+                </p>
+              ) : null}
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Fact label="Client Type" value={project.client_type} />
-              <Fact label="Project Type" value={project.project_type} />
-              <Fact label="Location" value={project.location} />
-              <Fact label="Status" value={project.featured ? "Featured story" : "Published story"} />
-            </div>
+            {facts.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {facts.map((fact) => (
+                  <Fact key={fact.label} label={fact.label} value={fact.value} />
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -78,16 +95,15 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
         </div>
       </section>
 
-      <section className="section-shell py-20">
-        <div className="grid gap-5 lg:grid-cols-2">
-          <StoryBlock title="Project Summary" text={project.summary ?? project.project_intent} />
-          <StoryBlock title="Client Goal" text={project.client_goal} />
-          <StoryBlock title="Project Pressure" text={joinSignals(project.project_pressures) ?? project.stakes} />
-          <StoryBlock title="Construction Challenge" text={project.challenge} />
-          <StoryBlock title="Delivery Approach" text={project.delivery_approach} />
-          <StoryBlock title="Built Outcome" text={joinSignals(project.built_outcomes) ?? project.built_outcome} wide />
-        </div>
-      </section>
+      {storyBlocks.length > 0 ? (
+        <section className="section-shell py-14">
+          <div className="grid gap-5 lg:grid-cols-2">
+            {storyBlocks.map((block) => (
+              <StoryBlock key={block.title} title={block.title} text={block.text} wide={block.wide} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {gallery.length > 0 ? (
         <section className="border-y border-ink/10 bg-white py-20">
@@ -138,7 +154,7 @@ function Fact({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="bg-white/8 p-5">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">{label}</p>
-      <p className="mt-2 text-xl font-black">{value || "Not listed"}</p>
+      <p className="mt-2 text-xl font-black">{value}</p>
     </div>
   );
 }
@@ -147,13 +163,15 @@ function StoryBlock({ title, text, wide = false }: { title: string; text: string
   return (
     <article className={`border border-ink/12 bg-white p-7 ${wide ? "lg:col-span-2" : ""}`}>
       <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">{title}</p>
-      <p className="mt-4 text-lg leading-8 text-steel">
-        {text || "This part of the project story is being prepared."}
-      </p>
+      <p className="mt-4 text-lg leading-8 text-steel">{text}</p>
     </article>
   );
 }
 
 function joinSignals(items: string[] | null) {
   return items && items.length > 0 ? items.join(", ") : null;
+}
+
+function hasContent(value?: string | null) {
+  return Boolean(value?.trim());
 }

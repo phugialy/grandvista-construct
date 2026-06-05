@@ -52,6 +52,8 @@ export type SiteSection = {
   headline: string | null;
   body: string | null;
   media_asset_id: string | null;
+  content_source: "manual" | "featured_project" | "fallback";
+  featured_project_id: string | null;
   media_assets: {
     id: string;
     public_url: string;
@@ -59,12 +61,17 @@ export type SiteSection = {
     alt_text: string | null;
     caption: string | null;
   } | null;
+  featured_project: PublishedProject | null;
 };
 
-type RawSiteSection = Omit<SiteSection, "media_assets"> & {
+type RawSiteSection = Omit<SiteSection, "featured_project" | "media_assets"> & {
   media_assets:
     | SiteSection["media_assets"]
     | SiteSection["media_assets"][];
+  featured_project:
+    | PublishedProject
+    | PublishedProject[]
+    | null;
 };
 
 export const getProjectCategories = unstable_cache(
@@ -134,7 +141,7 @@ export const getSiteSections = unstable_cache(
     const { data, error } = await supabase
       .from("site_sections")
       .select(
-        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,media_assets(id,public_url,media_type,alt_text,caption)",
+        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,media_assets(id,public_url,media_type,alt_text,caption),featured_project:projects(id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
       )
       .eq("published", true)
       .order("sort_order", { ascending: true });
@@ -149,6 +156,7 @@ export const getSiteSections = unstable_cache(
       media_assets: Array.isArray(section.media_assets)
         ? section.media_assets[0] ?? null
         : section.media_assets,
+      featured_project: normalizeFeaturedProject(section.featured_project),
     }));
 
     return Object.fromEntries(sections.map((section) => [section.section_key, section]));
@@ -156,3 +164,13 @@ export const getSiteSections = unstable_cache(
   ["site-sections"],
   { revalidate: 300 },
 );
+
+function normalizeFeaturedProject(project: RawSiteSection["featured_project"]) {
+  const normalized = Array.isArray(project) ? project[0] ?? null : project;
+
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized;
+}

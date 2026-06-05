@@ -20,6 +20,8 @@ export async function updateSiteSection(formData: FormData) {
 
   const sectionId = getString(formData, "section_id");
   const mediaAssetId = nullableString(formData, "media_asset_id");
+  const contentSource = getContentSource(formData);
+  const featuredProjectId = contentSource === "featured_project" ? nullableString(formData, "featured_project_id") : null;
 
   if (!sectionId) {
     redirect("/admin/website?status=missing");
@@ -31,7 +33,9 @@ export async function updateSiteSection(formData: FormData) {
     .update({
       headline: nullableString(formData, "headline"),
       body: nullableString(formData, "body"),
-      media_asset_id: mediaAssetId,
+      media_asset_id: contentSource === "manual" ? mediaAssetId : null,
+      content_source: contentSource,
+      featured_project_id: featuredProjectId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", sectionId);
@@ -48,4 +52,14 @@ export async function updateSiteSection(formData: FormData) {
   revalidatePath("/our-direction");
   revalidatePath("/company");
   redirect("/admin/website?status=saved");
+}
+
+function getContentSource(formData: FormData) {
+  const value = getString(formData, "content_source");
+
+  if (["manual", "featured_project", "fallback"].includes(value)) {
+    return value as "manual" | "featured_project" | "fallback";
+  }
+
+  return "manual";
 }
