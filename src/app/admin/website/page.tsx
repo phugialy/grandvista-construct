@@ -16,6 +16,10 @@ type SiteSection = {
   media_asset_id: string | null;
   content_source: "manual" | "featured_project" | "fallback";
   featured_project_id: string | null;
+  site_section_projects?: {
+    project_id: string;
+    sort_order: number;
+  }[];
 };
 
 type MediaAsset = {
@@ -66,7 +70,7 @@ export default async function AdminWebsitePage({
   const [{ data: sections }, { data: mediaAssets }, { data: projects }] = await Promise.all([
     supabase
       .from("site_sections")
-      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id")
+      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,site_section_projects(project_id,sort_order)")
       .order("sort_order", { ascending: true }),
     supabase
       .from("media_assets")
@@ -135,7 +139,10 @@ function SectionForm({
   section: SiteSection;
 }) {
   const selectedMedia = mediaAssets.find((asset) => asset.id === section.media_asset_id);
-  const selectedProject = projects.find((project) => project.id === section.featured_project_id);
+  const selectedProjectIds = getSelectedProjectIds(section);
+  const selectedProjects = selectedProjectIds
+    .map((projectId) => projects.find((project) => project.id === projectId))
+    .filter((project): project is ProjectOption => Boolean(project));
   const supportsFeaturedProject = section.section_key === "project-stories.hero";
   const source = section.content_source ?? "manual";
 
@@ -164,7 +171,7 @@ function SectionForm({
           {supportsFeaturedProject ? (
             <label className="flex items-center gap-3 text-sm font-black">
               <input defaultChecked={source === "featured_project"} name="content_source" type="radio" value="featured_project" />
-              Featured project story
+              Featured project stories
             </label>
           ) : null}
           <label className="flex items-center gap-3 text-sm font-black">
@@ -174,17 +181,36 @@ function SectionForm({
         </fieldset>
 
         {supportsFeaturedProject ? (
-          <label className="mt-5 grid gap-2 font-bold">
-            Featured project
-            <select className={inputClass} defaultValue={section.featured_project_id ?? ""} name="featured_project_id">
-              <option value="">Choose published project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.title} {[project.project_type, project.location].filter(Boolean).join(" / ")}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="mt-5 grid gap-3 border border-ink/10 p-4">
+            <legend className="px-2 font-bold">Featured project stories</legend>
+            <p className="text-sm font-bold leading-6 text-steel">
+              Select up to five published stories. They appear in this order in the Project Stories header.
+            </p>
+            <div className="grid gap-2">
+              {projects.map((project, index) => {
+                const selectedIndex = selectedProjectIds.indexOf(project.id);
+                return (
+                  <label key={project.id} className="flex items-start gap-3 border border-ink/10 bg-warm-white p-3 text-sm font-bold">
+                    <input
+                      defaultChecked={selectedIndex >= 0}
+                      name="featured_project_ids"
+                      type="checkbox"
+                      value={project.id}
+                    />
+                    <span>
+                      <span className="block text-ink">
+                        {selectedIndex >= 0 ? `${selectedIndex + 1}. ` : ""}
+                        {project.title}
+                      </span>
+                      <span className="mt-1 block text-xs uppercase tracking-[0.08em] text-steel">
+                        {[project.project_type, project.location].filter(Boolean).join(" / ") || `Option ${index + 1}`}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
         ) : null}
 
         <div className="mt-6 grid gap-4">
@@ -203,10 +229,15 @@ function SectionForm({
         <div className="border border-ink/10 bg-warm-white p-4">
           <p className="text-sm font-black uppercase tracking-[0.12em] text-steel">Current media</p>
           <div className="mt-3 aspect-[4/3] overflow-hidden bg-ink">
-            {source === "featured_project" && selectedProject ? (
+            {source === "featured_project" && selectedProjects.length > 0 ? (
               <div className="grid h-full place-items-center p-6 text-center text-white">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">Featured story</p>
-                <p className="mt-3 text-2xl font-black">{selectedProject.title}</p>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
+                  {selectedProjects.length} featured stories
+                </p>
+                <p className="mt-3 text-2xl font-black">{selectedProjects[0].title}</p>
+                {selectedProjects.length > 1 ? (
+                  <p className="mt-2 text-sm font-bold text-white/68">Carousel header active</p>
+                ) : null}
               </div>
             ) : selectedMedia && source === "manual" ? (
               <MediaPreview asset={selectedMedia} />
@@ -252,6 +283,18 @@ function SectionForm({
       </aside>
     </form>
   );
+}
+
+function getSelectedProjectIds(section: SiteSection) {
+  const projectIds = (section.site_section_projects ?? [])
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .map((row) => row.project_id);
+
+  if (projectIds.length > 0) {
+    return projectIds;
+  }
+
+  return section.featured_project_id ? [section.featured_project_id] : [];
 }
 
 function MediaPreview({ asset }: { asset: MediaAsset }) {

@@ -21,7 +21,8 @@ export async function updateSiteSection(formData: FormData) {
   const sectionId = getString(formData, "section_id");
   const mediaAssetId = nullableString(formData, "media_asset_id");
   const contentSource = getContentSource(formData);
-  const featuredProjectId = contentSource === "featured_project" ? nullableString(formData, "featured_project_id") : null;
+  const featuredProjectIds = getFeaturedProjectIds(formData);
+  const featuredProjectId = contentSource === "featured_project" ? featuredProjectIds[0] ?? null : null;
 
   if (!sectionId) {
     redirect("/admin/website?status=missing");
@@ -45,6 +46,7 @@ export async function updateSiteSection(formData: FormData) {
     redirect("/admin/website?status=error");
   }
 
+  await syncFeaturedProjects(sectionId, contentSource === "featured_project" ? featuredProjectIds : []);
   revalidatePath("/");
   revalidatePath("/project-stories");
   revalidatePath("/what-we-build");
@@ -52,6 +54,34 @@ export async function updateSiteSection(formData: FormData) {
   revalidatePath("/our-direction");
   revalidatePath("/company");
   redirect("/admin/website?status=saved");
+}
+
+async function syncFeaturedProjects(sectionId: string, projectIds: string[]) {
+  const supabase = getSupabaseServiceClient();
+  await supabase.from("site_section_projects").delete().eq("site_section_id", sectionId);
+
+  if (projectIds.length === 0) {
+    return;
+  }
+
+  const rows = Array.from(new Set(projectIds)).slice(0, 5).map((projectId, index) => ({
+    site_section_id: sectionId,
+    project_id: projectId,
+    sort_order: (index + 1) * 10,
+  }));
+  const { error } = await supabase.from("site_section_projects").insert(rows);
+
+  if (error) {
+    console.error("Featured project sync failed", error);
+  }
+}
+
+function getFeaturedProjectIds(formData: FormData) {
+  return formData
+    .getAll("featured_project_ids")
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
 function getContentSource(formData: FormData) {

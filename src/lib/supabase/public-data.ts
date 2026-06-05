@@ -54,6 +54,7 @@ export type SiteSection = {
   media_asset_id: string | null;
   content_source: "manual" | "featured_project" | "fallback";
   featured_project_id: string | null;
+  featured_projects: PublishedProject[];
   media_assets: {
     id: string;
     public_url: string;
@@ -61,17 +62,18 @@ export type SiteSection = {
     alt_text: string | null;
     caption: string | null;
   } | null;
-  featured_project: PublishedProject | null;
 };
 
-type RawSiteSection = Omit<SiteSection, "featured_project" | "media_assets"> & {
+type RawSiteSection = Omit<SiteSection, "featured_projects" | "media_assets"> & {
   media_assets:
     | SiteSection["media_assets"]
     | SiteSection["media_assets"][];
-  featured_project:
-    | PublishedProject
-    | PublishedProject[]
-    | null;
+};
+
+type FeaturedProjectRow = {
+  site_section_id: string;
+  sort_order: number;
+  projects: PublishedProject | PublishedProject[] | null;
 };
 
 export const getProjectCategories = unstable_cache(
@@ -141,7 +143,7 @@ export const getSiteSections = unstable_cache(
     const { data, error } = await supabase
       .from("site_sections")
       .select(
-        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,media_assets(id,public_url,media_type,alt_text,caption),featured_project:projects(id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
+        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,media_assets(id,public_url,media_type,alt_text,caption)",
       )
       .eq("published", true)
       .order("sort_order", { ascending: true });
@@ -151,12 +153,15 @@ export const getSiteSections = unstable_cache(
       return {};
     }
 
-    const sections = ((data ?? []) as RawSiteSection[]).map((section) => ({
+    const rawSections = (data ?? []) as RawSiteSection[];
+    const sectionIds = rawSections.map((section) => section.id);
+    const featuredProjectsBySectionId = await getFeaturedProjectsBySectionId(sectionIds);
+    const sections = rawSections.map((section) => ({
       ...section,
       media_assets: Array.isArray(section.media_assets)
         ? section.media_assets[0] ?? null
         : section.media_assets,
-      featured_project: normalizeFeaturedProject(section.featured_project),
+      featured_projects: featuredProjectsBySectionId.get(section.id) ?? [],
     }));
 
     return Object.fromEntries(sections.map((section) => [section.section_key, section]));
@@ -165,12 +170,38 @@ export const getSiteSections = unstable_cache(
   { revalidate: 300 },
 );
 
-function normalizeFeaturedProject(project: RawSiteSection["featured_project"]) {
-  const normalized = Array.isArray(project) ? project[0] ?? null : project;
+async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
+  const featuredProjectsBySectionId = new Map<string, PublishedProject[]>();
 
-  if (!normalized) {
-    return null;
+  if (sectionIds.length === 0) {
+    return featuredProjectsBySectionId;
   }
 
-  return normalized;
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("site_section_projects")
+    .select(
+      "site_section_id,sort_order,projects(id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
+    )
+    .in("site_section_id", sectionIds)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load featured section projects", error);
+    return featuredProjectsBySectionId;
+  }
+
+  for (const row of (data ?? []) as FeaturedProjectRow[]) {
+    const project = Array.isArray(row.projects) ? row.projects[0] ?? null : row.projects;
+
+    if (!project) {
+      continue;
+    }
+
+    const projects = featuredProjectsBySectionId.get(row.site_section_id) ?? [];
+    projects.push(project);
+    featuredProjectsBySectionId.set(row.site_section_id, projects);
+  }
+
+  return featuredProjectsBySectionId;
 }
