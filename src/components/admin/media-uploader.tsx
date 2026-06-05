@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { UploadCloud } from "lucide-react";
+import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 
 const maxImageSide = 2400;
 const imageQuality = 0.82;
 const maxVideoBytes = 30 * 1024 * 1024;
+const maxFilesPerBatch = 20;
 const iPhoneImageTypes = new Set(["image/heic", "image/heif"]);
 
 type UploadState = {
@@ -21,14 +23,22 @@ export function MediaUploader() {
   const [busy, setBusy] = useState(false);
 
   async function uploadFiles(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []);
+    await uploadSelectedFiles(Array.from(event.target.files ?? []));
+  }
 
+  async function uploadSelectedFiles(selectedFiles: File[]) {
     if (selectedFiles.length === 0) {
       return;
     }
 
+    if (selectedFiles.length > maxFilesPerBatch) {
+      setState({ message: `Choose up to ${maxFilesPerBatch} files at one time.`, tone: "error" });
+      inputRef.current?.form?.reset();
+      return;
+    }
+
     setBusy(true);
-    setState({ message: "Preparing media for the website...", tone: "neutral" });
+    setState({ message: `Preparing ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} for the website...`, tone: "neutral" });
 
     try {
       const formData = new FormData();
@@ -64,6 +74,16 @@ export function MediaUploader() {
     }
   }
 
+  async function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+
+    if (busy) {
+      return;
+    }
+
+    await uploadSelectedFiles(Array.from(event.dataTransfer.files ?? []));
+  }
+
   return (
     <form className="border border-ink/12 bg-white p-6">
       <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Upload jobsite proof</p>
@@ -73,11 +93,18 @@ export function MediaUploader() {
         the website.
       </p>
 
-      <label className="mt-6 grid cursor-pointer place-items-center border border-dashed border-ink/24 bg-warm-white p-8 text-center hover:border-brand-red">
+      <label
+        className="mt-6 grid cursor-pointer place-items-center border border-dashed border-ink/24 bg-warm-white p-8 text-center hover:border-brand-red"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={handleDrop}
+      >
+        <UploadCloud className="mb-3 text-brand-red" size={32} />
         <span className="text-sm font-black uppercase tracking-[0.08em] text-navy">
-          {busy ? "Uploading..." : "Choose Media"}
+          {busy ? "Uploading..." : "Drop or Choose Media"}
         </span>
-        <span className="mt-2 text-sm font-bold text-steel">JPG, PNG, WebP, HEIC, HEIF, MP4, WebM, or MOV</span>
+        <span className="mt-2 text-sm font-bold text-steel">
+          Up to {maxFilesPerBatch} files: JPG, PNG, WebP, HEIC, HEIF, MP4, WebM, or MOV
+        </span>
         <input
           ref={inputRef}
           accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,video/mp4,video/webm,video/quicktime"
