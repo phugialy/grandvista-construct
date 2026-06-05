@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getAssignableProjectMedia } from "@/lib/admin-media";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { ProjectForm } from "@/components/admin/project-form";
@@ -36,12 +37,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
 
   const hero = media?.find((item) => item.role === "hero");
   const gallery = media?.filter((item) => item.role === "gallery").map((item) => item.media_asset_id).filter(Boolean) ?? [];
-  const { data: mediaAssets } = await supabase
-    .from("media_assets")
-    .select("id,public_url,media_type,alt_text,caption,tags")
-    .eq("status", "ready")
-    .order("created_at", { ascending: false })
-    .limit(48);
+  const mediaAssets = await getAssignableProjectMedia(id);
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
@@ -67,7 +63,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
             hero_asset_id: hero?.media_asset_id,
             gallery_asset_ids: gallery,
           }}
-          mediaAssets={mediaAssets ?? []}
+          mediaAssets={mediaAssets}
         />
       </section>
     </main>

@@ -115,7 +115,7 @@ export function ProjectForm({
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Media</p>
-              <h2 className="mt-2 text-2xl font-black">Choose proof from the media library</h2>
+              <h2 className="mt-2 text-2xl font-black">Choose available proof for this project</h2>
             </div>
             <a
               className="border border-ink/14 px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-ink hover:border-brand-red hover:text-brand-red"
@@ -127,7 +127,7 @@ export function ProjectForm({
 
           {mediaAssets.length === 0 ? (
             <p className="mt-6 border border-ink/10 bg-warm-white p-5 font-bold text-steel">
-              No media is ready yet. Upload jobsite proof first, then return here to choose a hero and gallery.
+              No unassigned media is ready for this project. Upload or reassign jobsite proof from the Media Pool first.
             </p>
           ) : (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
