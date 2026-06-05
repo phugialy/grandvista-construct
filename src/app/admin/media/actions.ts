@@ -98,7 +98,8 @@ export async function assignMediaToSiteSection(formData: FormData) {
   await requireAdmin();
 
   const sectionId = getString(formData, "section_id");
-  const [mediaAssetId] = getSelectedAssetIds(formData);
+  const mediaAssetIds = getSelectedAssetIds(formData);
+  const [mediaAssetId] = mediaAssetIds;
 
   if (!sectionId || !mediaAssetId) {
     redirect("/admin/media?status=missing");
@@ -107,7 +108,12 @@ export async function assignMediaToSiteSection(formData: FormData) {
   const supabase = getSupabaseServiceClient();
   const { error } = await supabase
     .from("site_sections")
-    .update({ media_asset_id: mediaAssetId, updated_at: new Date().toISOString() })
+    .update({
+      content_source: "manual",
+      featured_project_id: null,
+      media_asset_id: mediaAssetId,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", sectionId);
 
   if (error) {
@@ -115,6 +121,7 @@ export async function assignMediaToSiteSection(formData: FormData) {
     redirect("/admin/media?status=error");
   }
 
+  await syncSectionMedia(sectionId, mediaAssetIds);
   revalidateWebsitePaths();
   redirect("/admin/media?status=assigned");
 }
@@ -218,6 +225,27 @@ async function syncProjectAssignment(projectId: string, assetIds: string[], requ
 
   if (error) {
     console.error("Project media assignment failed", error);
+  }
+}
+
+async function syncSectionMedia(sectionId: string, assetIds: string[]) {
+  const supabase = getSupabaseServiceClient();
+  await supabase.from("site_section_media").delete().eq("site_section_id", sectionId);
+
+  const rows = Array.from(new Set(assetIds)).slice(0, 8).map((mediaAssetId, index) => ({
+    site_section_id: sectionId,
+    media_asset_id: mediaAssetId,
+    sort_order: (index + 1) * 10,
+  }));
+
+  if (rows.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase.from("site_section_media").insert(rows);
+
+  if (error) {
+    console.error("Section media assignment failed", error);
   }
 }
 

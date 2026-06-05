@@ -6,6 +6,7 @@ import { FeaturedProjectHeroCarousel } from "@/components/marketing/featured-pro
 import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { SectionMediaHeroCarousel } from "@/components/marketing/section-media-hero-carousel";
 import { projectStoryFields } from "@/lib/site-content";
 import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
 
@@ -27,19 +28,38 @@ export default async function ProjectStoriesPage() {
     heroSection?.content_source === "featured_project"
       ? heroSection.featured_projects.filter((project) => project.slug)
       : [];
+  const manualHeroMedia =
+    heroSection?.content_source === "manual"
+      ? heroSection.section_media.length > 0
+        ? heroSection.section_media
+        : heroSection.media_assets
+          ? [heroSection.media_assets]
+          : []
+      : [];
+  const heroTitle = heroSection?.headline ?? "Built work with business purpose.";
+  const heroCopy =
+    heroSection?.body ??
+    "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome.";
 
   return (
     <MarketingShell>
       {featuredHeroProjects.length > 0 ? (
         <FeaturedProjectHeroCarousel projects={featuredHeroProjects} />
+      ) : manualHeroMedia.length > 1 ? (
+        <SectionMediaHeroCarousel
+          copy={heroCopy}
+          media={manualHeroMedia}
+          primaryHref="/start-a-project"
+          primaryLabel="Talk Through a Project"
+          secondaryHref="/how-we-work"
+          secondaryLabel="See The Process"
+          title={heroTitle}
+        />
       ) : (
         <PageHero
           eyebrow="Project Stories"
-          title={heroSection?.headline ?? "Built work with business purpose."}
-          copy={
-            heroSection?.body ??
-            "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome."
-          }
+          title={heroTitle}
+          copy={heroCopy}
           primaryHref="/start-a-project"
           primaryLabel="Talk Through a Project"
           secondaryHref="/how-we-work"
@@ -48,7 +68,7 @@ export default async function ProjectStoriesPage() {
             { label: "Proof", value: "Intent to outcome" },
             { label: "Format", value: "Case studies over galleries" },
           ]}
-          visualMedia={heroSection?.content_source === "fallback" ? null : heroSection?.media_assets}
+          visualMedia={manualHeroMedia[0] ?? null}
         />
       )}
 

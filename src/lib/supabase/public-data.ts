@@ -62,9 +62,18 @@ export type SiteSection = {
     alt_text: string | null;
     caption: string | null;
   } | null;
+  section_media: SiteSectionMediaAsset[];
 };
 
-type RawSiteSection = Omit<SiteSection, "featured_projects" | "media_assets"> & {
+export type SiteSectionMediaAsset = {
+  id: string;
+  public_url: string;
+  media_type: "image" | "video";
+  alt_text: string | null;
+  caption: string | null;
+};
+
+type RawSiteSection = Omit<SiteSection, "featured_projects" | "media_assets" | "section_media"> & {
   media_assets:
     | SiteSection["media_assets"]
     | SiteSection["media_assets"][];
@@ -74,6 +83,12 @@ type FeaturedProjectRow = {
   site_section_id: string;
   sort_order: number;
   projects: PublishedProject | PublishedProject[] | null;
+};
+
+type SectionMediaRow = {
+  site_section_id: string;
+  sort_order: number;
+  media_assets: SiteSectionMediaAsset | SiteSectionMediaAsset[] | null;
 };
 
 export const getProjectCategories = unstable_cache(
@@ -155,13 +170,17 @@ export const getSiteSections = unstable_cache(
 
     const rawSections = (data ?? []) as RawSiteSection[];
     const sectionIds = rawSections.map((section) => section.id);
-    const featuredProjectsBySectionId = await getFeaturedProjectsBySectionId(sectionIds);
+    const [featuredProjectsBySectionId, mediaBySectionId] = await Promise.all([
+      getFeaturedProjectsBySectionId(sectionIds),
+      getSectionMediaBySectionId(sectionIds),
+    ]);
     const sections = rawSections.map((section) => ({
       ...section,
       media_assets: Array.isArray(section.media_assets)
         ? section.media_assets[0] ?? null
         : section.media_assets,
       featured_projects: featuredProjectsBySectionId.get(section.id) ?? [],
+      section_media: mediaBySectionId.get(section.id) ?? [],
     }));
 
     return Object.fromEntries(sections.map((section) => [section.section_key, section]));
@@ -204,4 +223,38 @@ async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
   }
 
   return featuredProjectsBySectionId;
+}
+
+async function getSectionMediaBySectionId(sectionIds: string[]) {
+  const mediaBySectionId = new Map<string, SiteSectionMediaAsset[]>();
+
+  if (sectionIds.length === 0) {
+    return mediaBySectionId;
+  }
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("site_section_media")
+    .select("site_section_id,sort_order,media_assets(id,public_url,media_type,alt_text,caption)")
+    .in("site_section_id", sectionIds)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load section media", error);
+    return mediaBySectionId;
+  }
+
+  for (const row of (data ?? []) as SectionMediaRow[]) {
+    const media = Array.isArray(row.media_assets) ? row.media_assets[0] ?? null : row.media_assets;
+
+    if (!media) {
+      continue;
+    }
+
+    const sectionMedia = mediaBySectionId.get(row.site_section_id) ?? [];
+    sectionMedia.push(media);
+    mediaBySectionId.set(row.site_section_id, sectionMedia);
+  }
+
+  return mediaBySectionId;
 }

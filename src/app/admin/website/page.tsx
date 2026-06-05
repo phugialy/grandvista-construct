@@ -16,6 +16,10 @@ type SiteSection = {
   media_asset_id: string | null;
   content_source: "manual" | "featured_project" | "fallback";
   featured_project_id: string | null;
+  site_section_media?: {
+    media_asset_id: string;
+    sort_order: number;
+  }[];
   site_section_projects?: {
     project_id: string;
     sort_order: number;
@@ -70,7 +74,7 @@ export default async function AdminWebsitePage({
   const [{ data: sections }, { data: mediaAssets }, { data: projects }] = await Promise.all([
     supabase
       .from("site_sections")
-      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,site_section_projects(project_id,sort_order)")
+      .select("id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,site_section_media(media_asset_id,sort_order),site_section_projects(project_id,sort_order)")
       .order("sort_order", { ascending: true }),
     supabase
       .from("media_assets")
@@ -138,7 +142,10 @@ function SectionForm({
   projects: ProjectOption[];
   section: SiteSection;
 }) {
-  const selectedMedia = mediaAssets.find((asset) => asset.id === section.media_asset_id);
+  const selectedMediaIds = getSelectedMediaIds(section);
+  const selectedMediaAssets = selectedMediaIds
+    .map((assetId) => mediaAssets.find((asset) => asset.id === assetId))
+    .filter((asset): asset is MediaAsset => Boolean(asset));
   const selectedProjectIds = getSelectedProjectIds(section);
   const selectedProjects = selectedProjectIds
     .map((projectId) => projects.find((project) => project.id === projectId))
@@ -228,7 +235,7 @@ function SectionForm({
       <aside className="grid gap-4">
         <div className="border border-ink/10 bg-warm-white p-4">
           <p className="text-sm font-black uppercase tracking-[0.12em] text-steel">Current media</p>
-          <div className="mt-3 aspect-[4/3] overflow-hidden bg-ink">
+          <div className="relative mt-3 aspect-[4/3] overflow-hidden bg-ink">
             {source === "featured_project" && selectedProjects.length > 0 ? (
               <div className="grid h-full place-items-center p-6 text-center text-white">
                 <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
@@ -239,8 +246,18 @@ function SectionForm({
                   <p className="mt-2 text-sm font-bold text-white/68">Carousel header active</p>
                 ) : null}
               </div>
-            ) : selectedMedia && source === "manual" ? (
-              <MediaPreview asset={selectedMedia} />
+            ) : selectedMediaAssets.length > 0 && source === "manual" ? (
+              <>
+                <MediaPreview asset={selectedMediaAssets[0]} />
+                {selectedMediaAssets.length > 1 ? (
+                  <div className="absolute inset-x-4 bottom-4 bg-ink/84 p-3 text-white">
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-red">
+                      {selectedMediaAssets.length} media selected
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-white/70">Carousel-ready placement</p>
+                  </div>
+                ) : null}
+              </>
             ) : (
               <div className="grid h-full place-items-center text-sm font-bold text-white/60">Fallback design</div>
             )}
@@ -248,10 +265,12 @@ function SectionForm({
         </div>
 
         <div className="max-h-80 overflow-auto border border-ink/10 p-3">
-          <label className="mb-3 flex items-center gap-3 text-sm font-black">
-            <input defaultChecked={!section.media_asset_id} name="media_asset_id" type="radio" value="" />
-            Use fallback design
-          </label>
+          <p className="mb-2 text-sm font-black uppercase tracking-[0.12em] text-steel">
+            Selected media assets
+          </p>
+          <p className="mb-3 text-sm font-bold leading-6 text-steel">
+            Choose up to eight. They appear in the order shown here.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {mediaAssets.map((asset) => (
               <label key={asset.id} className="cursor-pointer border border-ink/12 p-2 hover:border-brand-red">
@@ -259,7 +278,12 @@ function SectionForm({
                   <MediaPreview asset={asset} />
                 </div>
                 <span className="mt-2 flex items-center gap-2 text-xs font-bold text-steel">
-                  <input defaultChecked={section.media_asset_id === asset.id} name="media_asset_id" type="radio" value={asset.id} />
+                  <input
+                    defaultChecked={selectedMediaIds.includes(asset.id)}
+                    name="media_asset_ids"
+                    type="checkbox"
+                    value={asset.id}
+                  />
                   {asset.media_type}
                 </span>
               </label>
@@ -295,6 +319,18 @@ function getSelectedProjectIds(section: SiteSection) {
   }
 
   return section.featured_project_id ? [section.featured_project_id] : [];
+}
+
+function getSelectedMediaIds(section: SiteSection) {
+  const mediaIds = (section.site_section_media ?? [])
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .map((row) => row.media_asset_id);
+
+  if (mediaIds.length > 0) {
+    return mediaIds;
+  }
+
+  return section.media_asset_id ? [section.media_asset_id] : [];
 }
 
 function MediaPreview({ asset }: { asset: MediaAsset }) {

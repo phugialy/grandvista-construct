@@ -50,13 +50,34 @@ type SiteSectionUsage = {
   label: string;
 };
 
+type SiteSectionMediaUsage = {
+  media_asset_id: string | null;
+  site_sections:
+    | {
+        page_slug: string;
+        label: string;
+      }
+    | {
+        page_slug: string;
+        label: string;
+      }[]
+    | null;
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminMediaPage() {
   await requireAdmin();
 
   const supabase = getSupabaseServiceClient();
-  const [{ data: mediaAssets }, { data: projects }, { data: sections }, { data: projectMedia }, { data: sectionMedia }] =
+  const [
+    { data: mediaAssets },
+    { data: projects },
+    { data: sections },
+    { data: projectMedia },
+    { data: sectionMedia },
+    { data: sectionMediaRail },
+  ] =
     await Promise.all([
       supabase
         .from("media_assets")
@@ -68,8 +89,13 @@ export default async function AdminMediaPage() {
       supabase.from("site_sections").select("id,section_key,page_slug,placement,label").order("sort_order", { ascending: true }),
       supabase.from("project_media").select("media_asset_id,role,projects(title)").not("media_asset_id", "is", null),
       supabase.from("site_sections").select("media_asset_id,page_slug,label").not("media_asset_id", "is", null),
+      supabase.from("site_section_media").select("media_asset_id,site_sections(page_slug,label)").not("media_asset_id", "is", null),
     ]);
-  const usageByAssetId = buildUsageMap((projectMedia ?? []) as unknown as ProjectMediaUsage[], (sectionMedia ?? []) as SiteSectionUsage[]);
+  const usageByAssetId = buildUsageMap(
+    (projectMedia ?? []) as unknown as ProjectMediaUsage[],
+    (sectionMedia ?? []) as SiteSectionUsage[],
+    (sectionMediaRail ?? []) as unknown as SiteSectionMediaUsage[],
+  );
   const assets = ((mediaAssets ?? []) as Omit<MediaAsset, "usage_labels">[]).map((asset) => ({
     ...asset,
     usage_labels: usageByAssetId.get(asset.id) ?? [],
@@ -111,7 +137,11 @@ function Metric({ label, value }: { label: string; value: number }) {
   );
 }
 
-function buildUsageMap(projectMedia: ProjectMediaUsage[], sectionMedia: SiteSectionUsage[]) {
+function buildUsageMap(
+  projectMedia: ProjectMediaUsage[],
+  sectionMedia: SiteSectionUsage[],
+  sectionMediaRail: SiteSectionMediaUsage[],
+) {
   const usage = new Map<string, string[]>();
 
   for (const row of projectMedia) {
@@ -131,6 +161,20 @@ function buildUsageMap(projectMedia: ProjectMediaUsage[], sectionMedia: SiteSect
 
     const label = `Page: ${row.page_slug} / ${row.label}`;
     usage.set(row.media_asset_id, [...(usage.get(row.media_asset_id) ?? []), label]);
+  }
+
+  for (const row of sectionMediaRail) {
+    if (!row.media_asset_id) {
+      continue;
+    }
+
+    const section = Array.isArray(row.site_sections) ? row.site_sections[0] : row.site_sections;
+    const label = `Page: ${section?.page_slug ?? "website"} / ${section?.label ?? "section"}`;
+    const currentLabels = usage.get(row.media_asset_id) ?? [];
+
+    if (!currentLabels.includes(label)) {
+      usage.set(row.media_asset_id, [...currentLabels, label]);
+    }
   }
 
   return usage;

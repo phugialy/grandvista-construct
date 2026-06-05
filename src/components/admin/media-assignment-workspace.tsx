@@ -250,7 +250,7 @@ function PageAssignmentForm({
           ))}
         </select>
       </label>
-      <PreviewNote title="Page preview" body="The first selected image will become this section's active media. Use the Website page for detailed copy changes." />
+      <PreviewNote title="Page preview" body="Selected media will be added to this section. If several are selected, the public header can rotate them where the page supports a carousel." />
       <button className="bg-navy px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white disabled:opacity-40" disabled={selectedIds.length === 0} type="submit">
         Apply to Page
       </button>
