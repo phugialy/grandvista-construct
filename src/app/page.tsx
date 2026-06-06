@@ -26,13 +26,13 @@ export default async function Home() {
   return (
     <MarketingShell>
       <section className="border-b border-ink/10 bg-ink text-white">
-        <div className="section-shell grid min-h-[720px] gap-10 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
-          <div className="max-w-3xl">
+        <div className="section-shell grid min-h-[700px] gap-10 py-16 lg:grid-cols-[0.66fr_1.34fr] lg:items-center">
+          <div className="max-w-2xl">
             <p className="eyebrow mb-6">Commercial construction with direction</p>
-            <h1 className="max-w-4xl text-5xl font-black leading-[0.96] tracking-normal sm:text-7xl lg:text-8xl">
+            <h1 className="max-w-2xl text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl lg:text-6xl">
               {heroSection?.headline ?? "Important Projects Deserve a Builder With Direction"}
             </h1>
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/74 sm:text-xl">
+            <p className="mt-7 max-w-xl text-base leading-8 text-white/74 sm:text-lg">
               {heroSection?.body ??
                 "Grandvista helps owners, operators, and project teams move from business need to usable built environment through clear planning, field coordination, and accountable execution."}
             </p>
@@ -52,17 +52,17 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="relative min-h-[520px] overflow-hidden border border-white/14 bg-[#151925]">
+          <div className="relative aspect-video min-h-[340px] overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] lg:min-h-0">
             {heroMedia ? (
               <>
                 <ManagedMedia
                   altFallback={heroSection?.label ?? "Grandvista hero media"}
-                  className="object-cover opacity-82"
+                  className="object-cover opacity-90"
                   media={heroMedia}
                   priority
-                  sizes="(min-width: 1024px) 44vw, 100vw"
+                  sizes="(min-width: 1024px) 58vw, 100vw"
                 />
-                <div className="absolute inset-0 bg-ink/38" />
+                <div className="absolute inset-0 bg-ink/22" />
               </>
             ) : (
               <>
@@ -77,21 +77,21 @@ export default async function Home() {
                 <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
               </>
             )}
-            <div className="absolute left-8 top-8 max-w-xs bg-ink/88 p-6">
+            <div className="absolute left-6 top-6 max-w-[17rem] bg-ink/82 p-5 backdrop-blur-sm sm:left-8 sm:top-8">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-red">
                 Media system ready
               </p>
-              <p className="mt-4 text-2xl font-black leading-tight">
+              <p className="mt-3 text-xl font-black leading-tight sm:text-2xl">
                 {proofSection?.body ?? "Built to carry jobsite clips, project photography, and case-study proof."}
               </p>
             </div>
-            <div className="absolute bottom-8 left-8 bg-white p-5 text-ink">
+            <div className="absolute bottom-6 left-6 bg-white p-4 text-ink sm:bottom-8 sm:left-8">
               <Image
                 src="/grandvista-logo.jpg"
                 alt="Grandvista logo"
                 width={132}
                 height={88}
-                className="h-20 w-32 object-contain"
+                className="h-16 w-28 object-contain sm:h-20 sm:w-32"
               />
             </div>
           </div>
