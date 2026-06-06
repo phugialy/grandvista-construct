@@ -77,22 +77,25 @@ export default async function Home() {
                 <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
               </>
             )}
-            <div className="absolute left-6 top-6 max-w-[17rem] bg-ink/82 p-5 backdrop-blur-sm sm:left-8 sm:top-8">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-red">
-                Media system ready
-              </p>
-              <p className="mt-3 text-xl font-black leading-tight sm:text-2xl">
-                {proofSection?.body ?? "Built to carry jobsite clips, project photography, and case-study proof."}
-              </p>
-            </div>
-            <div className="absolute bottom-6 left-6 bg-white p-4 text-ink sm:bottom-8 sm:left-8">
-              <Image
-                src="/grandvista-logo.jpg"
-                alt="Grandvista logo"
-                width={132}
-                height={88}
-                className="h-16 w-28 object-contain sm:h-20 sm:w-32"
-              />
+            <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 sm:inset-x-7 sm:bottom-7">
+              <div className="max-w-[15rem] bg-ink/82 p-4 backdrop-blur-sm">
+                <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-brand-red">
+                  Media system ready
+                </p>
+                <p className="mt-2 text-lg font-black leading-tight sm:text-xl">
+                  {proofSection?.body ??
+                    "Built to carry jobsite clips, project photography, and case-study proof."}
+                </p>
+              </div>
+              <div className="shrink-0 bg-white p-3 text-ink sm:p-4">
+                <Image
+                  src="/grandvista-logo.jpg"
+                  alt="Grandvista logo"
+                  width={132}
+                  height={88}
+                  className="h-14 w-24 object-contain sm:h-16 sm:w-28"
+                />
+              </div>
             </div>
           </div>
         </div>
