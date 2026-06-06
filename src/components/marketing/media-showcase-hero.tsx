@@ -61,13 +61,13 @@ export function MediaShowcaseHero({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.86fr_1.14fr] lg:items-center">
+      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.68fr_1.32fr] lg:items-center">
         <div>
           <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-6xl">
             {title}
           </h1>
-          <p className="mt-7 max-w-3xl text-lg leading-8 text-white/72">{copy}</p>
+          <p className="mt-7 max-w-2xl text-base leading-8 text-white/72 sm:text-lg">{copy}</p>
           {(primaryHref || secondaryHref) && (
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               {primaryHref && primaryLabel ? (
@@ -93,7 +93,7 @@ export function MediaShowcaseHero({
         <div className="grid gap-4">
           <button
             aria-label="Enlarge selected project image"
-            className="group relative min-h-[430px] overflow-hidden border border-white/14 bg-[#151925] text-left sm:min-h-[520px]"
+            className="group relative min-h-[460px] overflow-hidden border border-white/14 bg-[#151925] text-left transition duration-500 hover:z-10 hover:border-white/34 hover:shadow-[0_28px_80px_rgba(0,0,0,0.42)] sm:min-h-[600px] lg:hover:scale-[1.045]"
             onClick={() => setLightboxOpen(true)}
             type="button"
           >
@@ -101,12 +101,12 @@ export function MediaShowcaseHero({
               <>
                 <ManagedMedia
                   altFallback={title}
-                  className="object-cover opacity-86 transition duration-500 group-hover:scale-[1.02]"
+                  className="object-cover opacity-86 transition duration-700 group-hover:scale-[1.12] group-hover:opacity-100"
                   media={activeMedia}
                   priority
-                  sizes="(min-width: 1024px) 56vw, 100vw"
+                  sizes="(min-width: 1024px) 64vw, 100vw"
                 />
-                <div className="absolute inset-0 bg-ink/24 transition group-hover:bg-ink/12" />
+                <div className="absolute inset-0 bg-ink/24 transition duration-500 group-hover:bg-ink/4" />
               </>
             ) : null}
             <div className="absolute right-5 top-5 grid h-12 w-12 place-items-center border border-white/22 bg-ink/72 text-white transition group-hover:bg-white group-hover:text-ink">
@@ -163,7 +163,11 @@ export function MediaShowcaseHero({
       </div>
 
       {lightboxOpen && activeMedia ? (
-        <div className="fixed inset-0 z-50 bg-ink/92 p-4 text-white sm:p-8">
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink/92 p-4 text-white sm:p-8"
+          onClick={() => setLightboxOpen(false)}
+          role="presentation"
+        >
           <button
             aria-label="Close media preview"
             className="absolute right-5 top-5 z-10 grid h-12 w-12 place-items-center border border-white/24 bg-ink text-white hover:bg-white hover:text-ink"
@@ -172,7 +176,11 @@ export function MediaShowcaseHero({
           >
             <X size={20} />
           </button>
-          <div className="relative h-full w-full overflow-hidden border border-white/16 bg-[#151925]">
+          <div
+            className="relative h-[78vh] w-full max-w-6xl overflow-hidden border border-white/16 bg-[#151925] shadow-[0_28px_90px_rgba(0,0,0,0.55)]"
+            onClick={(event) => event.stopPropagation()}
+            role="presentation"
+          >
             <ManagedMedia
               altFallback={title}
               className="object-contain"
@@ -186,7 +194,10 @@ export function MediaShowcaseHero({
               <button
                 aria-label="Previous enlarged media"
                 className="absolute left-5 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center border border-white/24 bg-ink/86 text-white hover:bg-white hover:text-ink"
-                onClick={() => move(-1)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  move(-1);
+                }}
                 type="button"
               >
                 <ArrowLeft size={18} />
@@ -194,7 +205,10 @@ export function MediaShowcaseHero({
               <button
                 aria-label="Next enlarged media"
                 className="absolute right-5 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center border border-white/24 bg-ink/86 text-white hover:bg-white hover:text-ink"
-                onClick={() => move(1)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  move(1);
+                }}
                 type="button"
               >
                 <ArrowRight size={18} />
