@@ -3,6 +3,7 @@ import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+import { submitCompanyMessage } from "./actions";
 
 const values = [
   "Plan before the field is under pressure.",
@@ -35,9 +36,15 @@ const audiences = [
   },
 ];
 
-export default async function CompanyPage() {
+export default async function CompanyPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
   const sections = await getSiteSections();
+  const params = await searchParams;
   const heroSection = sections["company.hero"];
+  const status = params?.status;
 
   return (
     <MarketingShell>
@@ -132,6 +139,75 @@ export default async function CompanyPage() {
         </div>
       </section>
 
+      <section id="company-message" className="section-shell py-20">
+        <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr]">
+          <div>
+            <p className="eyebrow">Company Contact</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight">
+              Send a message without starting a full project intake.
+            </h2>
+            <p className="mt-5 leading-8 text-steel">
+              This path is for introductions, partner conversations, general questions, and early
+              company contact. Project-ready conversations can still use the full intake.
+            </p>
+          </div>
+          <form action={submitCompanyMessage} className="border border-ink/12 bg-white p-6">
+            {status === "message-sent" ? (
+              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+                Message received. The Grandvista team will review it and follow up if needed.
+              </div>
+            ) : null}
+            {status === "missing" ? (
+              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+                Please include your name, email, and message.
+              </div>
+            ) : null}
+            {status === "error" ? (
+              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+                Something went wrong while sending. Please try again.
+              </div>
+            ) : null}
+            <div className="grid gap-4 md:grid-cols-2">
+              <CompanyInput label="Name" name="name" required />
+              <CompanyInput label="Email" name="email" required type="email" />
+              <CompanyInput label="Company" name="company" />
+              <CompanyInput label="Phone" name="phone" type="tel" />
+            </div>
+            <label className="mt-4 block">
+              <span className="text-xs font-black uppercase tracking-[0.12em] text-navy">
+                Message Type
+              </span>
+              <select
+                className="mt-2 h-12 w-full border border-ink/12 bg-warm-white px-4 font-bold text-ink outline-none focus:border-navy"
+                name="reason"
+              >
+                <option>General message</option>
+                <option>Partner or subcontractor introduction</option>
+                <option>Owner or developer conversation</option>
+                <option>Architect or designer coordination</option>
+                <option>Company or media question</option>
+              </select>
+            </label>
+            <label className="mt-4 block">
+              <span className="text-xs font-black uppercase tracking-[0.12em] text-navy">
+                Message
+              </span>
+              <textarea
+                className="mt-2 min-h-36 w-full border border-ink/12 bg-warm-white px-4 py-3 leading-7 text-ink outline-none focus:border-navy"
+                name="message"
+                required
+              />
+            </label>
+            <button
+              className="mt-5 h-12 bg-navy px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-brand-red"
+              type="submit"
+            >
+              Send Message
+            </button>
+          </form>
+        </div>
+      </section>
+
       <FinalCta
         title="Ready to move from interest to project context?"
         copy="Grandvista's intake is built to understand the project type, stage, schedule, budget range, permit context, and what is at stake behind the work."
@@ -141,5 +217,29 @@ export default async function CompanyPage() {
         secondaryLabel="See How We Work"
       />
     </MarketingShell>
+  );
+}
+
+function CompanyInput({
+  label,
+  name,
+  required = false,
+  type = "text",
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  type?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-xs font-black uppercase tracking-[0.12em] text-navy">{label}</span>
+      <input
+        className="mt-2 h-12 w-full border border-ink/12 bg-warm-white px-4 font-bold text-ink outline-none focus:border-navy"
+        name={name}
+        required={required}
+        type={type}
+      />
+    </label>
   );
 }

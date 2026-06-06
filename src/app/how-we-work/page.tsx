@@ -2,6 +2,7 @@ import { AlertTriangle, ClipboardCheck, HardHat, MessageSquareText } from "lucid
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { ProcessTree } from "@/components/marketing/process-tree";
 import { processPillars } from "@/lib/site-content";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
@@ -39,6 +40,15 @@ const audiences = [
 export default async function HowWeWorkPage() {
   const sections = await getSiteSections();
   const heroSection = sections["how-we-work.hero"];
+  const stageMedia =
+    heroSection?.section_media.length && heroSection.content_source !== "fallback"
+      ? heroSection.section_media
+      : [];
+  const processStages = processPillars.map((pillar, index) => ({
+    media: stageMedia.length > 0 ? stageMedia[index % stageMedia.length] : null,
+    text: getPillarCopy(pillar),
+    title: pillar,
+  }));
 
   return (
     <MarketingShell>
@@ -60,35 +70,7 @@ export default async function HowWeWorkPage() {
         visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
-      <section className="section-shell py-20">
-        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
-          <div>
-            <p className="eyebrow">Delivery Workflow</p>
-            <h2 className="mt-4 text-4xl font-black leading-tight">
-              A serious project needs a visible operating rhythm.
-            </h2>
-            <p className="mt-5 leading-8 text-steel">
-              This is the structure behind the build: discovery, planning, readiness, field
-              execution, and turnover discipline.
-            </p>
-          </div>
-          <div className="grid gap-3">
-            {processPillars.map((pillar, index) => (
-              <article key={pillar} className="grid gap-4 border border-ink/12 bg-white p-5 sm:grid-cols-[72px_1fr]">
-                <span className="flex h-14 w-14 items-center justify-center bg-navy text-sm font-black text-white">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <h3 className="text-2xl font-black">{pillar}</h3>
-                  <p className="mt-2 leading-7 text-steel">
-                    {getPillarCopy(pillar)}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ProcessTree stages={processStages} />
 
       <section className="bg-white py-20">
         <div className="section-shell grid gap-10 lg:grid-cols-[1fr_1fr]">

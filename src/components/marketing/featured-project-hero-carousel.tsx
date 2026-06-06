@@ -63,6 +63,24 @@ export function FeaturedProjectHeroCarousel({ projects }: { projects: PublishedP
               Start a Similar Project
             </Link>
           </div>
+          {slides.length > 1 ? (
+            <div className="mt-7 flex flex-wrap gap-2">
+              {slides.map((project, index) => (
+                <button
+                  className={`border px-3 py-2 text-left text-xs font-black uppercase tracking-[0.08em] transition ${
+                    index === activeIndex
+                      ? "border-brand-red bg-brand-red text-white"
+                      : "border-white/18 text-white/72 hover:border-white hover:text-white"
+                  }`}
+                  key={project.id}
+                  onClick={() => setActiveIndex(index)}
+                  type="button"
+                >
+                  {project.title}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="relative min-h-[430px] overflow-hidden border border-white/14 bg-[#151925]">

@@ -2,6 +2,7 @@ import { BarChart3, Handshake, Layers3, ShieldCheck } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { VisionImageRail } from "@/components/marketing/vision-image-rail";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const today = [
@@ -46,6 +47,10 @@ const standards = [
 export default async function OurDirectionPage() {
   const sections = await getSiteSections();
   const heroSection = sections["our-direction.hero"];
+  const directionMedia =
+    heroSection?.section_media.length && heroSection.content_source !== "fallback"
+      ? heroSection.section_media
+      : [];
 
   return (
     <MarketingShell>
@@ -66,6 +71,8 @@ export default async function OurDirectionPage() {
         ]}
         visualMedia={getSectionPrimaryMedia(heroSection)}
       />
+
+      <VisionImageRail media={directionMedia} />
 
       <section className="section-shell py-20">
         <div className="grid gap-8 lg:grid-cols-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Building2, Factory, Store, UsersRound } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { MediaShowcaseHero } from "@/components/marketing/media-showcase-hero";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { getProjectCategories, getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
@@ -46,26 +47,49 @@ const buyerPaths = [
 export default async function WhatWeBuildPage() {
   const [categories, sections] = await Promise.all([getProjectCategories(), getSiteSections()]);
   const heroSection = sections["what-we-build.hero"];
+  const primaryHeroMedia = getSectionPrimaryMedia(heroSection);
+  const heroMedia =
+    heroSection?.section_media.length && heroSection.content_source !== "fallback"
+      ? heroSection.section_media
+      : primaryHeroMedia
+        ? [primaryHeroMedia]
+        : [];
+  const heroTitle = heroSection?.headline ?? "Commercial environments built around business use.";
+  const heroCopy =
+    heroSection?.body ??
+    "Grandvista builds spaces where businesses operate, serve customers, move products, support teams, and prepare for growth. The work starts with a construction scope, but the pressure behind it is business-critical.";
+  const heroStats = [
+    { label: "Work Type", value: "Commercial spaces" },
+    { label: "Focus", value: "Use, flow, readiness" },
+  ];
 
   return (
     <MarketingShell>
-      <PageHero
-        eyebrow="What We Build"
-        title={heroSection?.headline ?? "Commercial environments built around business use."}
-        copy={
-          heroSection?.body ??
-          "Grandvista builds spaces where businesses operate, serve customers, move products, support teams, and prepare for growth. The work starts with a construction scope, but the pressure behind it is business-critical."
-        }
-        primaryHref="/how-we-work"
-        primaryLabel="See How We Work"
-        secondaryHref="/start-a-project"
-        secondaryLabel="Discuss Your Build"
-        stats={[
-          { label: "Work Type", value: "Commercial spaces" },
-          { label: "Focus", value: "Use, flow, readiness" },
-        ]}
-        visualMedia={getSectionPrimaryMedia(heroSection)}
-      />
+      {heroMedia.length > 0 ? (
+        <MediaShowcaseHero
+          copy={heroCopy}
+          eyebrow="What We Build"
+          media={heroMedia}
+          primaryHref="/how-we-work"
+          primaryLabel="See How We Work"
+          secondaryHref="/start-a-project"
+          secondaryLabel="Discuss Your Build"
+          stats={heroStats}
+          title={heroTitle}
+        />
+      ) : (
+        <PageHero
+          copy={heroCopy}
+          eyebrow="What We Build"
+          primaryHref="/how-we-work"
+          primaryLabel="See How We Work"
+          secondaryHref="/start-a-project"
+          secondaryLabel="Discuss Your Build"
+          stats={heroStats}
+          title={heroTitle}
+          visualMedia={null}
+        />
+      )}
 
       <section className="section-shell py-20">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
