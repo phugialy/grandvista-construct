@@ -2,6 +2,7 @@ import { BarChart3, Handshake, Layers3, ShieldCheck } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const today = [
   "Commercial interiors",
@@ -42,13 +43,19 @@ const standards = [
   },
 ];
 
-export default function OurDirectionPage() {
+export default async function OurDirectionPage() {
+  const sections = await getSiteSections();
+  const heroSection = sections["our-direction.hero"];
+
   return (
     <MarketingShell>
       <PageHero
         eyebrow="Our Direction"
-        title="Built for today's commercial projects. Structured for tomorrow's growth."
-        copy="Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."
+        title={heroSection?.headline ?? "Built for today's commercial projects. Structured for tomorrow's growth."}
+        copy={
+          heroSection?.body ??
+          "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."
+        }
         primaryHref="/company"
         primaryLabel="Learn About the Company"
         secondaryHref="/start-a-project"
@@ -57,6 +64,7 @@ export default function OurDirectionPage() {
           { label: "Today", value: "Commercial focus" },
           { label: "Tomorrow", value: "Larger responsibility" },
         ]}
+        visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
       <section className="section-shell py-20">

@@ -73,6 +73,14 @@ export type SiteSectionMediaAsset = {
   caption: string | null;
 };
 
+export function getSectionPrimaryMedia(section?: SiteSection) {
+  if (!section || section.content_source === "fallback") {
+    return null;
+  }
+
+  return section.section_media[0] ?? section.media_assets ?? null;
+}
+
 type RawSiteSection = Omit<SiteSection, "featured_projects" | "media_assets" | "section_media"> & {
   media_assets:
     | SiteSection["media_assets"]

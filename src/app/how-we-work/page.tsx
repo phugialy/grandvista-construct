@@ -3,6 +3,7 @@ import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { processPillars } from "@/lib/site-content";
+import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const risks = [
   "Scope gaps before pricing",
@@ -35,13 +36,19 @@ const audiences = [
   "Subcontractors get cleaner coordination and fewer avoidable surprises.",
 ];
 
-export default function HowWeWorkPage() {
+export default async function HowWeWorkPage() {
+  const sections = await getSiteSections();
+  const heroSection = sections["how-we-work.hero"];
+
   return (
     <MarketingShell>
       <PageHero
         eyebrow="How We Work"
-        title="Construction is built in the field, but won in the planning."
-        copy="Grandvista's process is designed to create confidence before the first trade mobilizes: clearer scope, better risk awareness, field accountability, and owner-focused communication."
+        title={heroSection?.headline ?? "Construction is built in the field, but won in the planning."}
+        copy={
+          heroSection?.body ??
+          "Grandvista's process is designed to create confidence before the first trade mobilizes: clearer scope, better risk awareness, field accountability, and owner-focused communication."
+        }
         primaryHref="/project-stories"
         primaryLabel="Explore Project Stories"
         secondaryHref="/start-a-project"
@@ -50,6 +57,7 @@ export default function HowWeWorkPage() {
           { label: "Process", value: "Planning to turnover" },
           { label: "Standard", value: "Accountable execution" },
         ]}
+        visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
       <section className="section-shell py-20">

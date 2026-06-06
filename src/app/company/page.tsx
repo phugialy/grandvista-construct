@@ -2,6 +2,7 @@ import { BriefcaseBusiness, HardHat, MessagesSquare, Route, UsersRound } from "l
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const values = [
   "Plan before the field is under pressure.",
@@ -34,13 +35,19 @@ const audiences = [
   },
 ];
 
-export default function CompanyPage() {
+export default async function CompanyPage() {
+  const sections = await getSiteSections();
+  const heroSection = sections["company.hero"];
+
   return (
     <MarketingShell>
       <PageHero
         eyebrow="Company"
-        title="A commercial builder with direction."
-        copy="Grandvista is building a commercial construction company grounded in planning, field coordination, and ownership-minded communication. The company is serious about today's work and structured for tomorrow's growth."
+        title={heroSection?.headline ?? "A commercial builder with direction."}
+        copy={
+          heroSection?.body ??
+          "Grandvista is building a commercial construction company grounded in planning, field coordination, and ownership-minded communication. The company is serious about today's work and structured for tomorrow's growth."
+        }
         primaryHref="/start-a-project"
         primaryLabel="Start a Project"
         secondaryHref="/our-direction"
@@ -49,6 +56,7 @@ export default function CompanyPage() {
           { label: "Mindset", value: "Builder-minded" },
           { label: "Promise", value: "Accountable execution" },
         ]}
+        visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
       <section className="section-shell py-20">

@@ -3,7 +3,7 @@ import { ArrowUpRight, Building2, Factory, Store, UsersRound } from "lucide-reac
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
-import { getProjectCategories } from "@/lib/supabase/public-data";
+import { getProjectCategories, getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const stakes = [
   {
@@ -44,14 +44,18 @@ const buyerPaths = [
 ];
 
 export default async function WhatWeBuildPage() {
-  const categories = await getProjectCategories();
+  const [categories, sections] = await Promise.all([getProjectCategories(), getSiteSections()]);
+  const heroSection = sections["what-we-build.hero"];
 
   return (
     <MarketingShell>
       <PageHero
         eyebrow="What We Build"
-        title="Commercial environments built around business use."
-        copy="Grandvista builds spaces where businesses operate, serve customers, move products, support teams, and prepare for growth. The work starts with a construction scope, but the pressure behind it is business-critical."
+        title={heroSection?.headline ?? "Commercial environments built around business use."}
+        copy={
+          heroSection?.body ??
+          "Grandvista builds spaces where businesses operate, serve customers, move products, support teams, and prepare for growth. The work starts with a construction scope, but the pressure behind it is business-critical."
+        }
         primaryHref="/how-we-work"
         primaryLabel="See How We Work"
         secondaryHref="/start-a-project"
@@ -60,6 +64,7 @@ export default async function WhatWeBuildPage() {
           { label: "Work Type", value: "Commercial spaces" },
           { label: "Focus", value: "Use, flow, readiness" },
         ]}
+        visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
       <section className="section-shell py-20">

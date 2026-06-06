@@ -9,7 +9,7 @@ import {
   confidenceAudiences,
   processPillars,
 } from "@/lib/site-content";
-import { getSiteSections } from "@/lib/supabase/public-data";
+import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const proofPoints = [
   { label: "Audience", value: "Owners, operators, developers" },
@@ -21,6 +21,7 @@ export default async function Home() {
   const sections = await getSiteSections();
   const heroSection = sections["home.hero"];
   const proofSection = sections["home.proof"];
+  const heroMedia = getSectionPrimaryMedia(heroSection);
 
   return (
     <MarketingShell>
@@ -52,12 +53,12 @@ export default async function Home() {
           </div>
 
           <div className="relative min-h-[520px] overflow-hidden border border-white/14 bg-[#151925]">
-            {heroSection?.media_assets ? (
+            {heroMedia ? (
               <>
                 <ManagedMedia
-                  altFallback={heroSection.label}
+                  altFallback={heroSection?.label ?? "Grandvista hero media"}
                   className="object-cover opacity-82"
-                  media={heroSection.media_assets}
+                  media={heroMedia}
                   priority
                   sizes="(min-width: 1024px) 44vw, 100vw"
                 />
