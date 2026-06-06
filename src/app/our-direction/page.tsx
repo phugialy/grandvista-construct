@@ -1,9 +1,9 @@
 import { BarChart3, Handshake, Layers3, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { PageHero } from "@/components/marketing/page-hero";
 import { VisionImageRail } from "@/components/marketing/vision-image-rail";
-import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+import { getSiteSections } from "@/lib/supabase/public-data";
 
 const today = [
   "Commercial interiors",
@@ -54,23 +54,44 @@ export default async function OurDirectionPage() {
 
   return (
     <MarketingShell>
-      <PageHero
-        eyebrow="Our Direction"
-        title={heroSection?.headline ?? "Built for today's commercial projects. Structured for tomorrow's growth."}
-        copy={
-          heroSection?.body ??
-          "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."
-        }
-        primaryHref="/company"
-        primaryLabel="Learn About the Company"
-        secondaryHref="/start-a-project"
-        secondaryLabel="Start a Project"
-        stats={[
-          { label: "Today", value: "Commercial focus" },
-          { label: "Tomorrow", value: "Larger responsibility" },
-        ]}
-        visualMedia={getSectionPrimaryMedia(heroSection)}
-      />
+      <section className="border-b border-white/10 bg-ink text-white">
+        <div className="section-shell py-20">
+          <p className="eyebrow">Our Direction</p>
+          <div className="mt-6 grid gap-10 lg:grid-cols-[1.18fr_0.82fr] lg:items-end">
+            <div>
+              <h1 className="max-w-6xl text-5xl font-black leading-[0.95] sm:text-7xl lg:text-8xl">
+                {heroSection?.headline ??
+                  "Built for today's commercial projects. Structured for tomorrow's growth."}
+              </h1>
+            </div>
+            <div>
+              <p className="text-lg leading-8 text-white/72">
+                {heroSection?.body ??
+                  "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."}
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+                <Link
+                  className="inline-flex h-12 items-center justify-center bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
+                  href="/company"
+                >
+                  Learn About the Company
+                </Link>
+                <Link
+                  className="inline-flex h-12 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
+                  href="/start-a-project"
+                >
+                  Start a Project
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-14 grid gap-4 border-t border-white/12 pt-6 sm:grid-cols-2">
+            <VisionStat label="Today" value="Commercial focus" />
+            <VisionStat label="Tomorrow" value="Larger responsibility" />
+          </div>
+        </div>
+      </section>
 
       <VisionImageRail media={directionMedia} />
 
@@ -146,5 +167,14 @@ export default async function OurDirectionPage() {
         secondaryLabel="Start a Project"
       />
     </MarketingShell>
+  );
+}
+
+function VisionStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-white/14 bg-white/[0.04] p-5">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">{label}</p>
+      <p className="mt-2 text-2xl font-black">{value}</p>
+    </div>
   );
 }
