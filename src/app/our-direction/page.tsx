@@ -57,38 +57,30 @@ export default async function OurDirectionPage() {
       <section className="border-b border-white/10 bg-ink text-white">
         <div className="section-shell py-20">
           <p className="eyebrow">Our Direction</p>
-          <div className="mt-6 grid gap-10 lg:grid-cols-[1.18fr_0.82fr] lg:items-end">
-            <div>
-              <h1 className="max-w-6xl text-5xl font-black leading-[0.95] sm:text-7xl lg:text-8xl">
-                {heroSection?.headline ??
-                  "Built for today's commercial projects. Structured for tomorrow's growth."}
-              </h1>
-            </div>
-            <div>
-              <p className="text-lg leading-8 text-white/72">
-                {heroSection?.body ??
-                  "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."}
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-                <Link
-                  className="inline-flex h-12 items-center justify-center bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
-                  href="/company"
-                >
-                  Learn About the Company
-                </Link>
-                <Link
-                  className="inline-flex h-12 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
-                  href="/start-a-project"
-                >
-                  Start a Project
-                </Link>
-              </div>
-            </div>
-          </div>
+          <h1 className="mt-6 max-w-7xl text-5xl font-black leading-[0.96] sm:text-7xl lg:text-8xl">
+            {heroSection?.headline ??
+              "Built for today's commercial projects. Structured for tomorrow's growth."}
+          </h1>
 
-          <div className="mt-14 grid gap-4 border-t border-white/12 pt-6 sm:grid-cols-2">
+          <div className="mt-10 grid gap-4 border-t border-white/12 pt-6 lg:grid-cols-[1.15fr_0.55fr_0.55fr_auto_auto] lg:items-stretch">
+            <p className="max-w-3xl text-base leading-8 text-white/72">
+              {heroSection?.body ??
+                "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."}
+            </p>
             <VisionStat label="Today" value="Commercial focus" />
             <VisionStat label="Tomorrow" value="Larger responsibility" />
+            <Link
+              className="inline-flex h-14 items-center justify-center bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
+              href="/company"
+            >
+              Company
+            </Link>
+            <Link
+              className="inline-flex h-14 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
+              href="/start-a-project"
+            >
+              Start
+            </Link>
           </div>
         </div>
       </section>
