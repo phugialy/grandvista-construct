@@ -52,42 +52,44 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="relative aspect-video min-h-[340px] overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] lg:min-h-0">
-            {heroMedia ? (
-              <>
-                <ManagedMedia
-                  altFallback={heroSection?.label ?? "Grandvista hero media"}
-                  className="object-cover opacity-90"
-                  media={heroMedia}
-                  priority
-                  sizes="(min-width: 1024px) 58vw, 100vw"
-                />
-                <div className="absolute inset-0 bg-ink/22" />
-              </>
-            ) : (
-              <>
-                <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
-                  {Array.from({ length: 36 }).map((_, index) => (
-                    <div key={index} className="border border-white/[0.035]" />
-                  ))}
-                </div>
-                <div className="absolute inset-x-8 top-8 h-44 bg-concrete/85" />
-                <div className="absolute bottom-20 left-8 right-20 h-52 bg-white/10" />
-                <div className="absolute bottom-8 left-20 right-8 h-28 bg-brand-red" />
-                <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
-              </>
-            )}
-            <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 sm:inset-x-7 sm:bottom-7">
-              <div className="max-w-[15rem] bg-ink/82 p-4 backdrop-blur-sm">
+          <div className="grid gap-4">
+            <div className="relative aspect-video min-h-[340px] overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] lg:min-h-0">
+              {heroMedia ? (
+                <>
+                  <ManagedMedia
+                    altFallback={heroSection?.label ?? "Grandvista hero media"}
+                    className="object-cover opacity-90"
+                    media={heroMedia}
+                    priority
+                    sizes="(min-width: 1024px) 58vw, 100vw"
+                  />
+                  <div className="absolute inset-0 bg-ink/14" />
+                </>
+              ) : (
+                <>
+                  <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
+                    {Array.from({ length: 36 }).map((_, index) => (
+                      <div key={index} className="border border-white/[0.035]" />
+                    ))}
+                  </div>
+                  <div className="absolute inset-x-8 top-8 h-44 bg-concrete/85" />
+                  <div className="absolute bottom-20 left-8 right-20 h-52 bg-white/10" />
+                  <div className="absolute bottom-8 left-20 right-8 h-28 bg-brand-red" />
+                  <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
+                </>
+              )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
+              <div className="border border-white/12 bg-white/[0.045] p-4">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-brand-red">
                   Media system ready
                 </p>
-                <p className="mt-2 text-lg font-black leading-tight sm:text-xl">
+                <p className="mt-2 max-w-xl text-lg font-black leading-tight sm:text-xl">
                   {proofSection?.body ??
                     "Built to carry jobsite clips, project photography, and case-study proof."}
                 </p>
               </div>
-              <div className="shrink-0 bg-white p-3 text-ink sm:p-4">
+              <div className="grid min-h-24 place-items-center border border-white/12 bg-white p-3 text-ink sm:min-w-40 sm:p-4">
                 <Image
                   src="/grandvista-logo.jpg"
                   alt="Grandvista logo"
