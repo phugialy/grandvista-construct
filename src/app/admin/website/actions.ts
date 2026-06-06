@@ -19,6 +19,7 @@ export async function updateSiteSection(formData: FormData) {
   await requireAdmin();
 
   const sectionId = getString(formData, "section_id");
+  const pageSlug = getString(formData, "page_slug");
   const mediaAssetIds = getMediaAssetIds(formData);
   const mediaAssetId = contentSourceMediaAssetId(formData, mediaAssetIds);
   const contentSource = getContentSource(formData);
@@ -55,7 +56,8 @@ export async function updateSiteSection(formData: FormData) {
   revalidatePath("/how-we-work");
   revalidatePath("/our-direction");
   revalidatePath("/company");
-  redirect("/admin/website?status=saved");
+  const pageQuery = pageSlug ? `page=${encodeURIComponent(pageSlug)}&` : "";
+  redirect(`/admin/website?${pageQuery}status=saved`);
 }
 
 async function syncSectionMedia(sectionId: string, mediaAssetIds: string[]) {

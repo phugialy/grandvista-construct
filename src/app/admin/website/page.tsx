@@ -41,6 +41,45 @@ type ProjectOption = {
   location: string | null;
 };
 
+type PageTab = {
+  description: string;
+  label: string;
+  slug: string;
+};
+
+const pageTabs: PageTab[] = [
+  {
+    description: "Landing page hero, proof, and first impression placements.",
+    label: "Home",
+    slug: "home",
+  },
+  {
+    description: "Construction categories and capability positioning.",
+    label: "What We Build",
+    slug: "what-we-build",
+  },
+  {
+    description: "Process, planning, risk, and field-discipline sections.",
+    label: "How We Work",
+    slug: "how-we-work",
+  },
+  {
+    description: "Case-study header, empty states, and proof storytelling.",
+    label: "Project Stories",
+    slug: "project-stories",
+  },
+  {
+    description: "Growth vision and future-ready direction messaging.",
+    label: "Our Direction",
+    slug: "our-direction",
+  },
+  {
+    description: "Company credibility, brand identity, and trust signals.",
+    label: "Company",
+    slug: "company",
+  },
+];
+
 const pagePreviewLinks: Record<string, string> = {
   company: "/company",
   "how-we-work": "/how-we-work",
@@ -65,10 +104,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminWebsitePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ status?: string }>;
+  searchParams?: Promise<{ page?: string; status?: string }>;
 }) {
   await requireAdmin();
-  const { status } = searchParams ? await searchParams : {};
+  const { page, status } = searchParams ? await searchParams : {};
 
   const supabase = getSupabaseServiceClient();
   const [{ data: sections }, { data: mediaAssets }, { data: projects }] = await Promise.all([
@@ -88,6 +127,18 @@ export default async function AdminWebsitePage({
       .eq("published", true)
       .order("updated_at", { ascending: false }),
   ]);
+
+  const typedSections = (sections ?? []) as SiteSection[];
+  const typedMediaAssets = (mediaAssets ?? []) as MediaAsset[];
+  const typedProjects = (projects ?? []) as ProjectOption[];
+  const sectionCountByPage = getSectionCountByPage(typedSections);
+  const selectedPage = getSelectedPageSlug(page, typedSections);
+  const activePage = pageTabs.find((tab) => tab.slug === selectedPage) ?? {
+    description: "Website page placements.",
+    label: toPageLabel(selectedPage),
+    slug: selectedPage,
+  };
+  const pageSections = typedSections.filter((section) => section.page_slug === selectedPage);
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
@@ -118,15 +169,59 @@ export default async function AdminWebsitePage({
           </Link>
         </div>
 
-        <div className="grid gap-6">
-          {((sections ?? []) as SiteSection[]).map((section) => (
-            <SectionForm
-              key={section.id}
-              mediaAssets={(mediaAssets ?? []) as MediaAsset[]}
-              projects={(projects ?? []) as ProjectOption[]}
-              section={section}
-            />
-          ))}
+        <div className="grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+          <aside className="sticky top-4 border border-ink/12 bg-white p-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
+              Page navigation
+            </p>
+            <div className="mt-4 grid gap-2">
+              {getPageTabs(typedSections).map((tab) => {
+                const count = sectionCountByPage.get(tab.slug) ?? 0;
+                const active = tab.slug === selectedPage;
+
+                return (
+                  <Link
+                    className={`block border p-4 transition ${
+                      active
+                        ? "border-navy bg-navy text-white"
+                        : "border-ink/12 text-ink hover:border-brand-red hover:text-brand-red"
+                    }`}
+                    href={`/admin/website?page=${tab.slug}`}
+                    key={tab.slug}
+                  >
+                    <span className="block text-sm font-black">{tab.label}</span>
+                    <span className={`mt-2 block text-xs font-bold ${active ? "text-white/68" : "text-steel"}`}>
+                      {count} placement{count === 1 ? "" : "s"}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div>
+            <div className="mb-5 border border-ink/12 bg-white p-6">
+              <p className="eyebrow">Current page</p>
+              <h3 className="mt-3 text-3xl font-black">{activePage.label}</h3>
+              <p className="mt-3 max-w-2xl leading-7 text-steel">{activePage.description}</p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <MetricPill label="Placements" value={String(pageSections.length)} />
+                <MetricPill label="Images" value={String(typedMediaAssets.filter((asset) => asset.media_type === "image").length)} />
+                <MetricPill label="Videos" value={String(typedMediaAssets.filter((asset) => asset.media_type === "video").length)} />
+              </div>
+            </div>
+
+            <div className="grid gap-6">
+              {pageSections.map((section) => (
+                <SectionForm
+                  key={section.id}
+                  mediaAssets={typedMediaAssets}
+                  projects={typedProjects}
+                  section={section}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -156,6 +251,7 @@ function SectionForm({
   return (
     <form action={updateSiteSection} className="grid gap-5 border border-ink/12 bg-white p-6 lg:grid-cols-[1fr_420px]">
       <input name="section_id" type="hidden" value={section.id} />
+      <input name="page_slug" type="hidden" value={section.page_slug} />
 
       <div>
         <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
@@ -264,31 +360,14 @@ function SectionForm({
           </div>
         </div>
 
-        <div className="max-h-80 overflow-auto border border-ink/10 p-3">
+        <div className="max-h-[30rem] overflow-auto border border-ink/10 p-3">
           <p className="mb-2 text-sm font-black uppercase tracking-[0.12em] text-steel">
             Selected media assets
           </p>
           <p className="mb-3 text-sm font-bold leading-6 text-steel">
             Choose up to eight. They appear in the order shown here.
           </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {mediaAssets.map((asset) => (
-              <label key={asset.id} className="cursor-pointer border border-ink/12 p-2 hover:border-brand-red">
-                <div className="aspect-[4/3] overflow-hidden bg-ink">
-                  <MediaPreview asset={asset} />
-                </div>
-                <span className="mt-2 flex items-center gap-2 text-xs font-bold text-steel">
-                  <input
-                    defaultChecked={selectedMediaIds.includes(asset.id)}
-                    name="media_asset_ids"
-                    type="checkbox"
-                    value={asset.id}
-                  />
-                  {asset.media_type}
-                </span>
-              </label>
-            ))}
-          </div>
+          <MediaAssetGroups mediaAssets={mediaAssets} selectedMediaIds={selectedMediaIds} />
         </div>
 
         <button
@@ -309,6 +388,88 @@ function SectionForm({
   );
 }
 
+function MediaAssetGroups({
+  mediaAssets,
+  selectedMediaIds,
+}: {
+  mediaAssets: MediaAsset[];
+  selectedMediaIds: string[];
+}) {
+  const selectedAssets = selectedMediaIds
+    .map((assetId) => mediaAssets.find((asset) => asset.id === assetId))
+    .filter((asset): asset is MediaAsset => Boolean(asset));
+  const selectedAssetIdSet = new Set(selectedMediaIds);
+  const images = mediaAssets.filter((asset) => asset.media_type === "image" && !selectedAssetIdSet.has(asset.id));
+  const videos = mediaAssets.filter((asset) => asset.media_type === "video" && !selectedAssetIdSet.has(asset.id));
+
+  return (
+    <div className="grid gap-5">
+      {selectedAssets.length > 0 ? (
+        <MediaAssetGroup
+          assets={selectedAssets}
+          selectedMediaIds={selectedMediaIds}
+          title="Selected for this placement"
+        />
+      ) : null}
+      <MediaAssetGroup assets={images} selectedMediaIds={selectedMediaIds} title="Images" />
+      <MediaAssetGroup assets={videos} selectedMediaIds={selectedMediaIds} title="Short clips" />
+    </div>
+  );
+}
+
+function MediaAssetGroup({
+  assets,
+  selectedMediaIds,
+  title,
+}: {
+  assets: MediaAsset[];
+  selectedMediaIds: string[];
+  title: string;
+}) {
+  if (assets.length === 0) {
+    return null;
+  }
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h4 className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">{title}</h4>
+        <span className="text-xs font-bold text-steel">
+          {assets.length} asset{assets.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {assets.map((asset) => (
+          <label key={asset.id} className="cursor-pointer border border-ink/12 p-2 hover:border-brand-red">
+            <div className="aspect-[4/3] overflow-hidden bg-ink">
+              <MediaPreview asset={asset} />
+            </div>
+            <span className="mt-2 flex items-center gap-2 text-xs font-bold text-steel">
+              <input
+                defaultChecked={selectedMediaIds.includes(asset.id)}
+                name="media_asset_ids"
+                type="checkbox"
+                value={asset.id}
+              />
+              {asset.media_type}
+              {asset.tags.length > 0 ? <span className="truncate text-steel/70">/ {asset.tags.slice(0, 2).join(", ")}</span> : null}
+            </span>
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MetricPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-ink/10 bg-warm-white px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">{label}</p>
+      <p className="mt-1 text-2xl font-black text-navy">{value}</p>
+    </div>
+  );
+}
+
 function getSelectedProjectIds(section: SiteSection) {
   const projectIds = (section.site_section_projects ?? [])
     .sort((left, right) => left.sort_order - right.sort_order)
@@ -319,6 +480,47 @@ function getSelectedProjectIds(section: SiteSection) {
   }
 
   return section.featured_project_id ? [section.featured_project_id] : [];
+}
+
+function getPageTabs(sections: SiteSection[]) {
+  const knownSlugs = new Set(sections.map((section) => section.page_slug));
+  const configuredTabs = pageTabs.filter((tab) => knownSlugs.has(tab.slug));
+  const extraTabs = Array.from(knownSlugs)
+    .filter((slug) => !pageTabs.some((tab) => tab.slug === slug))
+    .map((slug) => ({
+      description: "Website page placements.",
+      label: toPageLabel(slug),
+      slug,
+    }));
+
+  return [...configuredTabs, ...extraTabs];
+}
+
+function getSelectedPageSlug(page: string | undefined, sections: SiteSection[]) {
+  const availableSlugs = new Set(sections.map((section) => section.page_slug));
+
+  if (page && availableSlugs.has(page)) {
+    return page;
+  }
+
+  return getPageTabs(sections)[0]?.slug ?? "home";
+}
+
+function getSectionCountByPage(sections: SiteSection[]) {
+  const counts = new Map<string, number>();
+
+  for (const section of sections) {
+    counts.set(section.page_slug, (counts.get(section.page_slug) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function toPageLabel(slug: string) {
+  return slug
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function getSelectedMediaIds(section: SiteSection) {

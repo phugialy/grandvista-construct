@@ -39,6 +39,15 @@ type SiteSectionOption = {
   label: string;
 };
 
+const pageOrder = [
+  "home",
+  "what-we-build",
+  "how-we-work",
+  "project-stories",
+  "our-direction",
+  "company",
+];
+
 const quickTags = [
   ...projectTags,
   "Restaurant",
@@ -70,6 +79,13 @@ export function MediaAssignmentWorkspace({
     [assets, selectedIds],
   );
   const activeAsset = selectedAssets.find((asset) => asset.id === activeId) ?? selectedAssets[0] ?? assets.find((asset) => asset.id === activeId) ?? assets[0];
+  const filterCounts = {
+    all: assets.length,
+    images: assets.filter((asset) => asset.media_type === "image").length,
+    unassigned: assets.filter((asset) => asset.usage_labels.length === 0 && asset.tags.length === 0).length,
+    used: assets.filter((asset) => asset.usage_labels.length > 0).length,
+    videos: assets.filter((asset) => asset.media_type === "video").length,
+  };
   const filteredAssets = assets.filter((asset) => {
     if (filter === "images") return asset.media_type === "image";
     if (filter === "videos") return asset.media_type === "video";
@@ -112,7 +128,7 @@ export function MediaAssignmentWorkspace({
                 onClick={() => setFilter(option)}
                 type="button"
               >
-                {option}
+                {option} <span className="ml-1 opacity-70">{filterCounts[option]}</span>
               </button>
             ))}
           </div>
@@ -243,10 +259,14 @@ function PageAssignmentForm({
         Page placement
         <select className="min-h-12 border border-ink/14 bg-white p-3 text-sm font-bold text-ink" name="section_id" required>
           <option value="">Choose where the image goes</option>
-          {siteSections.map((section) => (
-            <option key={section.id} value={section.id}>
-              {section.page_slug} / {section.label}
-            </option>
+          {groupSectionsByPage(siteSections).map((group) => (
+            <optgroup key={group.pageSlug} label={toPageLabel(group.pageSlug)}>
+              {group.sections.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.placement} / {section.label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </label>
@@ -398,4 +418,27 @@ function formatBytes(bytes: number) {
   }
 
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
+function groupSectionsByPage(sections: SiteSectionOption[]) {
+  const pageRank = new Map(pageOrder.map((slug, index) => [slug, index]));
+  const groups = new Map<string, SiteSectionOption[]>();
+
+  for (const section of sections) {
+    groups.set(section.page_slug, [...(groups.get(section.page_slug) ?? []), section]);
+  }
+
+  return Array.from(groups.entries())
+    .map(([pageSlug, pageSections]) => ({
+      pageSlug,
+      sections: pageSections.sort((left, right) => left.placement.localeCompare(right.placement)),
+    }))
+    .sort((left, right) => (pageRank.get(left.pageSlug) ?? 999) - (pageRank.get(right.pageSlug) ?? 999));
+}
+
+function toPageLabel(slug: string) {
+  return slug
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
