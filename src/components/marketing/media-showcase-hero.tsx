@@ -61,7 +61,7 @@ export function MediaShowcaseHero({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.68fr_1.32fr] lg:items-center">
+      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.72fr_1.08fr] lg:items-center">
         <div>
           <p className="eyebrow">{eyebrow}</p>
           <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-6xl">
@@ -90,10 +90,10 @@ export function MediaShowcaseHero({
           )}
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid w-full gap-4 lg:justify-self-end">
           <button
             aria-label="Enlarge selected project image"
-            className="group relative min-h-[460px] overflow-hidden border border-white/14 bg-[#151925] text-left transition duration-500 hover:z-10 hover:border-white/34 hover:shadow-[0_28px_80px_rgba(0,0,0,0.42)] sm:min-h-[600px] lg:hover:scale-[1.045]"
+            className="group relative aspect-square w-full max-w-[620px] overflow-hidden border border-white/14 bg-[#151925] text-left transition duration-500 hover:z-10 hover:border-white/34 hover:shadow-[0_28px_80px_rgba(0,0,0,0.42)] lg:hover:scale-[1.035]"
             onClick={() => setLightboxOpen(true)}
             type="button"
           >
@@ -113,7 +113,7 @@ export function MediaShowcaseHero({
               <Maximize2 size={19} />
             </div>
             {stats.length > 0 ? (
-              <div className="absolute inset-x-5 bottom-5 grid gap-3 sm:grid-cols-2">
+              <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:inset-x-5 sm:bottom-5 sm:grid-cols-2">
                 {stats.map((stat) => (
                   <div key={stat.label} className="bg-ink/88 p-5">
                     <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
@@ -177,7 +177,7 @@ export function MediaShowcaseHero({
             <X size={20} />
           </button>
           <div
-            className="relative h-[78vh] w-full max-w-6xl overflow-hidden border border-white/16 bg-[#151925] shadow-[0_28px_90px_rgba(0,0,0,0.55)]"
+            className="relative aspect-square w-[min(86vw,78vh)] overflow-hidden border border-white/16 bg-[#151925] shadow-[0_28px_90px_rgba(0,0,0,0.55)]"
             onClick={(event) => event.stopPropagation()}
             role="presentation"
           >
