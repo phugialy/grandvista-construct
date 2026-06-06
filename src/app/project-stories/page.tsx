@@ -7,18 +7,7 @@ import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { SectionMediaHeroCarousel } from "@/components/marketing/section-media-hero-carousel";
-import { projectStoryFields } from "@/lib/site-content";
 import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
-
-const filters = [
-  "Commercial Interiors",
-  "Food Service",
-  "Retail",
-  "Office / Medical",
-  "Warehouse / Industrial",
-  "Ground-Up",
-  "Adaptive Reuse",
-];
 
 export default async function ProjectStoriesPage() {
   const [projects, sections] = await Promise.all([getPublishedProjects(), getSiteSections()]);
@@ -40,6 +29,8 @@ export default async function ProjectStoriesPage() {
   const heroCopy =
     heroSection?.body ??
     "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome.";
+  const projectTypes = getUniqueLabels(projects.map((project) => project.project_type));
+  const projectMarkets = getUniqueLabels(projects.map((project) => project.location));
 
   return (
     <MarketingShell>
@@ -72,56 +63,47 @@ export default async function ProjectStoriesPage() {
         />
       )}
 
-      <section className="section-shell py-20">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div>
-            <p className="eyebrow">Project Filters</p>
-            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">
-              Make completed work easier to understand by category.
-            </h2>
-          </div>
-          <p className="max-w-md leading-7 text-steel">
-            These filters will become active once published projects and media are added through
-            the admin workflow.
-          </p>
-        </div>
-        <div className="mt-10 flex flex-wrap gap-3">
-          {filters.map((filter) => (
-            <span
-              key={filter}
-              className="border border-ink/12 bg-white px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-navy"
-            >
-              {filter}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="border-y border-ink/10 bg-white py-20">
-        <div className="section-shell">
-          <p className="eyebrow">Case Study Logic</p>
-          <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight">
-            Every project should explain why the work mattered.
-          </h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-5">
-            {projectStoryFields.map((field, index) => (
-              <article key={field} className="bg-warm-white p-5">
-                <p className="text-sm font-black text-brand-red">
-                  {String(index + 1).padStart(2, "0")}
+      {projects.length > 0 ? (
+        <section className="border-y border-ink/10 bg-white py-12">
+          <div className="section-shell grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="eyebrow">Published Proof</p>
+              <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight">
+                Real work, organized around business outcomes.
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <ProofMetric label="Stories" value={String(projects.length)} />
+              <ProofMetric label="Project Types" value={String(projectTypes.length || 1)} />
+              <ProofMetric label="Markets" value={String(projectMarkets.length || 1)} />
+            </div>
+            {projectTypes.length > 0 ? (
+              <div className="lg:col-span-2">
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-steel">
+                  Current story categories
                 </p>
-                <h3 className="mt-4 text-lg font-black leading-tight">{field}</h3>
-              </article>
-            ))}
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {projectTypes.map((type) => (
+                    <span
+                      className="border border-ink/12 bg-warm-white px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-navy"
+                      key={type}
+                    >
+                      {type}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="section-shell py-20">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
             <p className="eyebrow">Built Proof</p>
             <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">
-              Project stories will become the sales proof engine.
+              Built work that can start a serious project conversation.
             </h2>
           </div>
           <Link
@@ -239,5 +221,24 @@ function ManagedEmptyMedia({
       <ManagedMedia altFallback="Project story proof media" className="object-cover opacity-82" media={media} />
       <div className="absolute inset-0 bg-ink/26" />
     </>
+  );
+}
+
+function ProofMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-ink/12 bg-warm-white p-5">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-steel">{label}</p>
+      <p className="mt-3 text-4xl font-black text-navy">{value}</p>
+    </div>
+  );
+}
+
+function getUniqueLabels(values: Array<string | null>) {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => value?.trim())
+        .filter((value): value is string => Boolean(value)),
+    ),
   );
 }
