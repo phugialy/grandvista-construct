@@ -162,6 +162,40 @@ export async function updateProject(formData: FormData) {
   redirect(`/admin/projects/${projectId}?status=saved`);
 }
 
+export async function deleteProject(formData: FormData) {
+  await requireAdmin();
+
+  const projectId = getString(formData, "project_id");
+
+  if (!projectId) {
+    redirect("/admin/projects?status=missing");
+  }
+
+  const supabase = getSupabaseServiceClient();
+  const { data: project } = await supabase
+    .from("projects")
+    .select("slug")
+    .eq("id", projectId)
+    .maybeSingle();
+  const { error } = await supabase.from("projects").delete().eq("id", projectId);
+
+  if (error) {
+    console.error("Project delete failed", error);
+    redirect(`/admin/projects/${projectId}?status=error`);
+  }
+
+  revalidateProjectPaths(project?.slug ?? undefined);
+  revalidatePath("/");
+  revalidatePath("/admin/projects");
+  revalidatePath("/admin/media");
+  revalidatePath("/admin/website");
+  revalidatePath("/what-we-build");
+  revalidatePath("/how-we-work");
+  revalidatePath("/our-direction");
+  revalidatePath("/company");
+  redirect("/admin/projects?status=deleted");
+}
+
 async function syncProjectMedia(projectId: string, formData: FormData) {
   const heroAssetId = nullableString(formData, "hero_asset_id");
   const galleryAssetIds = formData

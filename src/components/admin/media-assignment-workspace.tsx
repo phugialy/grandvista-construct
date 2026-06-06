@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Check, ImageIcon, Layers, Tags, X } from "lucide-react";
+import { Archive, Check, ImageIcon, Layers, Tags, Trash2, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import {
@@ -8,6 +8,7 @@ import {
   assignMediaToProject,
   assignMediaToSiteSection,
   createDraftProjectFromMedia,
+  deleteSelectedMedia,
   tagSelectedMedia,
 } from "@/app/admin/media/actions";
 import { projectTags, projectTypes } from "@/lib/admin-projects";
@@ -71,7 +72,7 @@ export function MediaAssignmentWorkspace({
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(assets[0]?.id ?? null);
-  const [tab, setTab] = useState<"page" | "story" | "tags" | "archive">("page");
+  const [tab, setTab] = useState<"page" | "story" | "tags" | "archive" | "delete">("page");
   const [filter, setFilter] = useState<"unassigned" | "all" | "images" | "videos" | "used">("unassigned");
 
   const selectedAssets = useMemo(
@@ -216,11 +217,12 @@ export function MediaAssignmentWorkspace({
             ))}
           </div>
 
-          <div className="mt-5 grid grid-cols-4 border border-ink/10">
+          <div className="mt-5 grid grid-cols-5 border border-ink/10">
             <TabButton active={tab === "page"} icon={<ImageIcon size={15} />} label="Page" onClick={() => setTab("page")} />
             <TabButton active={tab === "story"} icon={<Layers size={15} />} label="Story" onClick={() => setTab("story")} />
             <TabButton active={tab === "tags"} icon={<Tags size={15} />} label="Tags" onClick={() => setTab("tags")} />
             <TabButton active={tab === "archive"} icon={<Archive size={15} />} label="Archive" onClick={() => setTab("archive")} />
+            <TabButton active={tab === "delete"} icon={<Trash2 size={15} />} label="Delete" onClick={() => setTab("delete")} />
           </div>
 
           <div className="mt-5">
@@ -228,6 +230,7 @@ export function MediaAssignmentWorkspace({
             {tab === "story" ? <StoryAssignmentForm projects={projects} selectedIds={selectedIds} /> : null}
             {tab === "tags" ? <TagAssignmentForm selectedIds={selectedIds} /> : null}
             {tab === "archive" ? <ArchiveAssignmentForm selectedIds={selectedIds} /> : null}
+            {tab === "delete" ? <DeleteMediaForm selectedIds={selectedIds} /> : null}
           </div>
         </div>
       </aside>
@@ -364,6 +367,29 @@ function ArchiveAssignmentForm({ selectedIds }: { selectedIds: string[] }) {
       <PreviewNote title="Archive selected" body="Archived media is hidden from normal assignment, but the stored file is not immediately deleted." />
       <button className="bg-brand-red px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white disabled:opacity-40" disabled={selectedIds.length === 0} type="submit">
         Move to Archive
+      </button>
+    </form>
+  );
+}
+
+function DeleteMediaForm({ selectedIds }: { selectedIds: string[] }) {
+  return (
+    <form
+      action={deleteSelectedMedia}
+      className="grid gap-4"
+      onSubmit={(event) => {
+        if (!window.confirm("Permanently delete selected media files and remove them from pages/projects?")) {
+          event.preventDefault();
+        }
+      }}
+    >
+      <HiddenSelectedAssets selectedIds={selectedIds} />
+      <PreviewNote
+        title="Delete permanently"
+        body="This removes selected media from page placements, project stories, the media library, and Supabase Storage."
+      />
+      <button className="bg-brand-red px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white disabled:opacity-40" disabled={selectedIds.length === 0} type="submit">
+        Delete Permanently
       </button>
     </form>
   );

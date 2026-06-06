@@ -65,6 +65,59 @@ export async function archiveSelectedMedia(formData: FormData) {
   redirect("/admin/media?status=archived");
 }
 
+export async function deleteSelectedMedia(formData: FormData) {
+  await requireAdmin();
+
+  const assetIds = getSelectedAssetIds(formData);
+
+  if (assetIds.length === 0) {
+    redirect("/admin/media?status=missing");
+  }
+
+  const supabase = getSupabaseServiceClient();
+  const { data: assets, error: loadError } = await supabase
+    .from("media_assets")
+    .select("id,bucket,storage_path")
+    .in("id", assetIds);
+
+  if (loadError || !assets || assets.length === 0) {
+    console.error("Media delete load failed", loadError);
+    redirect("/admin/media?status=error");
+  }
+
+  await supabase.from("project_media").delete().in("media_asset_id", assetIds);
+  await supabase.from("site_section_media").delete().in("media_asset_id", assetIds);
+  await supabase
+    .from("site_sections")
+    .update({ media_asset_id: null, updated_at: new Date().toISOString() })
+    .in("media_asset_id", assetIds);
+
+  const { error: deleteError } = await supabase.from("media_assets").delete().in("id", assetIds);
+
+  if (deleteError) {
+    console.error("Media delete failed", deleteError);
+    redirect("/admin/media?status=error");
+  }
+
+  const pathsByBucket = new Map<string, string[]>();
+
+  for (const asset of assets) {
+    pathsByBucket.set(asset.bucket, [...(pathsByBucket.get(asset.bucket) ?? []), asset.storage_path]);
+  }
+
+  for (const [bucket, paths] of pathsByBucket) {
+    const { error: storageError } = await supabase.storage.from(bucket).remove(paths);
+
+    if (storageError) {
+      console.error("Media storage delete failed", storageError);
+    }
+  }
+
+  revalidateWebsitePaths();
+  revalidateProjectPaths();
+  redirect("/admin/media?status=deleted");
+}
+
 export async function tagSelectedMedia(formData: FormData) {
   await requireAdmin();
 

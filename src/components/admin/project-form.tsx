@@ -1,4 +1,4 @@
-import { createProject, updateProject } from "@/app/admin/projects/actions";
+import { createProject, deleteProject, updateProject } from "@/app/admin/projects/actions";
 import { builtOutcomes, clientGoals, projectPressures, projectTags, projectTypes } from "@/lib/admin-projects";
 
 type MediaAsset = {
@@ -202,6 +202,23 @@ export function ProjectForm({
         >
           {project?.id ? "Save Project" : "Create Project"}
         </button>
+
+        {project?.id ? (
+          <section className="border border-brand-red/25 bg-white p-6">
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Danger zone</p>
+            <p className="mt-3 text-sm font-bold leading-6 text-steel">
+              Delete this project story and remove it from public project pages. Media files stay in the media pool.
+            </p>
+            <button
+              className="mt-5 w-full border border-brand-red px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-brand-red hover:bg-brand-red hover:text-white"
+              formAction={deleteProject}
+              formNoValidate
+              type="submit"
+            >
+              Delete Project Story
+            </button>
+          </section>
+        ) : null}
       </aside>
     </form>
   );

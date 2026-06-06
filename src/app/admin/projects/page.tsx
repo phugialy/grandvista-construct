@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { deleteProject } from "./actions";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -93,6 +94,15 @@ export default async function AdminProjectsPage() {
                   >
                     Edit
                   </Link>
+                  <form action={deleteProject}>
+                    <input name="project_id" type="hidden" value={project.id} />
+                    <button
+                      className="border border-brand-red px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-brand-red hover:bg-brand-red hover:text-white"
+                      type="submit"
+                    >
+                      Delete
+                    </button>
+                  </form>
                 </div>
               </div>
             </article>
