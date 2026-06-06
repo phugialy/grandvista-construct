@@ -83,7 +83,7 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
                 src={hero.url}
               />
             ) : hero?.url && hero.media_type === "video" ? (
-              <video className="absolute inset-0 h-full w-full object-cover" controls muted playsInline src={hero.url} />
+              <video autoPlay className="absolute inset-0 h-full w-full object-cover" controls loop muted playsInline src={hero.url} />
             ) : (
               <div className="absolute inset-0 grid grid-cols-6 grid-rows-6">
                 {Array.from({ length: 36 }).map((_, index) => (
@@ -125,7 +125,7 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
                         src={media.url}
                       />
                     ) : (
-                      <video className="absolute inset-0 h-full w-full object-cover" controls muted playsInline src={media.url} />
+                      <video autoPlay className="absolute inset-0 h-full w-full object-cover" controls loop muted playsInline src={media.url} />
                     )}
                   </div>
                   {media.caption ? (

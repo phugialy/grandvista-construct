@@ -4,7 +4,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 const bucket = "grandvista-media";
 const maxImageBytes = 8 * 1024 * 1024;
-const maxVideoBytes = 30 * 1024 * 1024;
+const maxVideoBytes = 50 * 1024 * 1024;
 const allowedTypes = new Set([
   "image/jpeg",
   "image/png",
@@ -94,7 +94,7 @@ function validateFile(file: File) {
   }
 
   if (file.type.startsWith("video/") && file.size > maxVideoBytes) {
-    return "This video is too large for the website. Use a shorter clip under 30MB.";
+    return "This video is too large for the current storage limit. Use a shorter clip under 50MB.";
   }
 
   return null;

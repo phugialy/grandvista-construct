@@ -161,7 +161,9 @@ export default async function ProjectStoriesPage() {
                   />
                 ) : project.project_media?.find((media) => media.role === "hero" && media.media_type === "video")?.url ? (
                   <video
+                    autoPlay
                     className="absolute inset-0 h-full w-full object-cover opacity-80"
+                    loop
                     muted
                     playsInline
                     src={project.project_media.find((media) => media.role === "hero" && media.media_type === "video")?.url}

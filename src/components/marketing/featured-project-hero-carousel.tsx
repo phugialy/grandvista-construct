@@ -133,7 +133,7 @@ export function FeaturedProjectHeroCarousel({ projects }: { projects: PublishedP
 
 function ProjectHeroMedia({ media, title }: { media: ProjectMedia; title: string }) {
   if (media.media_type === "video") {
-    return <video className="absolute inset-0 h-full w-full object-cover" loop muted playsInline src={media.url} />;
+    return <video autoPlay className="absolute inset-0 h-full w-full object-cover" loop muted playsInline src={media.url} />;
   }
 
   return (

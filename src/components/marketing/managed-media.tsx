@@ -28,6 +28,7 @@ export function ManagedMedia({
   if (media.media_type === "video") {
     return (
       <video
+        autoPlay={!videoControls}
         className={`absolute inset-0 h-full w-full ${className}`}
         controls={videoControls}
         loop={!videoControls}

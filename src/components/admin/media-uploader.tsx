@@ -2,10 +2,11 @@
 
 import { UploadCloud } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const maxImageSide = 2400;
 const imageQuality = 0.82;
-const maxVideoBytes = 30 * 1024 * 1024;
+const maxVideoBytes = 50 * 1024 * 1024;
 const maxFilesPerBatch = 20;
 const iPhoneImageTypes = new Set(["image/heic", "image/heif"]);
 
@@ -41,20 +42,71 @@ export function MediaUploader() {
     setState({ message: `Preparing ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} for the website...`, tone: "neutral" });
 
     try {
-      const formData = new FormData();
+      const preparedFiles = [];
 
       for (const file of selectedFiles) {
         const prepared = await prepareFile(file);
-        formData.append("files", prepared);
+        preparedFiles.push(prepared);
       }
 
-      const response = await fetch("/admin/media/upload", {
+      const signResponse = await fetch("/admin/media/upload/sign", {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({
+          files: preparedFiles.map((file) => ({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+          })),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-      const result = (await response.json()) as { error?: string; uploaded?: unknown[] };
+      const signResult = (await signResponse.json()) as {
+        error?: string;
+        uploads?: Array<{ path: string; size: number; token: string; type: string }>;
+      };
 
-      if (!response.ok) {
+      if (!signResponse.ok || !signResult.uploads) {
+        throw new Error(signResult.error ?? "Upload failed.");
+      }
+
+      const supabase = getSupabaseBrowserClient();
+
+      for (const [index, upload] of signResult.uploads.entries()) {
+        const file = preparedFiles[index];
+
+        if (!file) {
+          throw new Error("Upload preparation failed. Try again.");
+        }
+
+        const { error } = await supabase.storage
+          .from("grandvista-media")
+          .uploadToSignedUrl(upload.path, upload.token, file, {
+            contentType: file.type,
+          });
+
+        if (error) {
+          throw new Error(`${file.name} could not upload to storage. ${error.message}`);
+        }
+      }
+
+      const completeResponse = await fetch("/admin/media/upload/complete", {
+        method: "POST",
+        body: JSON.stringify({
+          uploads: signResult.uploads.map((upload) => ({
+            path: upload.path,
+            size: upload.size,
+            type: upload.type,
+          })),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const result = (await completeResponse.json()) as { error?: string; uploaded?: unknown[] };
+
+      if (!completeResponse.ok) {
         throw new Error(result.error ?? "Upload failed.");
       }
 
@@ -89,8 +141,8 @@ export function MediaUploader() {
       <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Upload jobsite proof</p>
       <h2 className="mt-3 text-3xl font-black">Add images and short clips</h2>
       <p className="mt-3 leading-7 text-steel">
-        The portal prepares oversized images and iPhone photos before upload, then blocks files that are too heavy for
-        the website.
+        The portal prepares oversized images and iPhone photos before upload. Video uploads go directly to storage so
+        larger clips do not overload the website server.
       </p>
 
       <label
@@ -103,7 +155,7 @@ export function MediaUploader() {
           {busy ? "Uploading..." : "Drop or Choose Media"}
         </span>
         <span className="mt-2 text-sm font-bold text-steel">
-          Up to {maxFilesPerBatch} files: JPG, PNG, WebP, HEIC, HEIF, MP4, WebM, or MOV
+          Up to {maxFilesPerBatch} files: JPG, PNG, WebP, HEIC, HEIF, MP4, WebM, or MOV. Videos up to 50MB.
         </span>
         <input
           ref={inputRef}
@@ -126,7 +178,7 @@ export function MediaUploader() {
 async function prepareFile(file: File) {
   if (file.type.startsWith("video/")) {
     if (file.size > maxVideoBytes) {
-      throw new Error(`${file.name} is too large. Use a shorter clip under 30MB.`);
+      throw new Error(`${file.name} is too large for the current storage limit. Use a shorter clip under 50MB.`);
     }
 
     return file;
