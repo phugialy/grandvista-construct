@@ -54,12 +54,12 @@ const pageTabs: PageTab[] = [
     slug: "home",
   },
   {
-    description: "Construction categories and capability positioning.",
+    description: "Image-led construction categories and capability positioning.",
     label: "What We Build",
     slug: "what-we-build",
   },
   {
-    description: "Process, planning, risk, and field-discipline sections.",
+    description: "Header copy plus stage-by-stage workflow media.",
     label: "How We Work",
     slug: "how-we-work",
   },
@@ -69,7 +69,7 @@ const pageTabs: PageTab[] = [
     slug: "project-stories",
   },
   {
-    description: "Growth vision and future-ready direction messaging.",
+    description: "Typography-led vision copy with a horizontal image rail below the hero.",
     label: "Our Direction",
     slug: "our-direction",
   },
@@ -92,8 +92,20 @@ const pagePreviewLinks: Record<string, string> = {
 const placementGuidance: Record<string, string> = {
   "home.hero": "Recommended: wide image or short clip, 16:9 or wider.",
   "home.proof": "Recommended: field detail or finished-space proof, 4:3 or 16:9.",
+  "what-we-build.hero": "Recommended: large image set. This page is image-led, so strong jobsite and finished-space media matter most.",
+  "how-we-work.hero": "Recommended: headline and supporting copy for the page header. Use one steady process or field coordination visual.",
+  "how-we-work.discovery": "Recommended: discovery, walkthrough, site condition, or first conversation proof. One image is enough.",
+  "how-we-work.scope": "Recommended: drawings, rough-in, field condition, or scope detail proof. One image is enough.",
+  "how-we-work.budget": "Recommended: planning, estimate, material, or practical decision proof. One image is enough.",
+  "how-we-work.schedule": "Recommended: active jobsite sequencing, deliveries, or progress proof. One image is enough.",
+  "how-we-work.permit": "Recommended: inspection, code, documentation, or readiness proof. One image is enough.",
+  "how-we-work.trade": "Recommended: trades coordinating, MEP, framing, or multi-trade activity. One image is enough.",
+  "how-we-work.field": "Recommended: field execution, supervision, punch, or site progress proof. One image is enough.",
+  "how-we-work.communication": "Recommended: owner update, meeting, walkthrough, or decision-point proof. One image is enough.",
+  "how-we-work.turnover": "Recommended: closeout, finished space, clean handoff, or ready-to-operate proof. One image is enough.",
   "project-stories.hero": "Recommended: strong construction/project image, 16:9.",
   "project-stories.empty": "Recommended: branded proof image until real case studies are published.",
+  "our-direction.hero": "Recommended: images for the vision rail under the hero, not a header overlay. Use current work, future-leaning proof, and real field ambition.",
 };
 
 const inputClass =
@@ -247,6 +259,7 @@ function SectionForm({
     .filter((project): project is ProjectOption => Boolean(project));
   const supportsFeaturedProject = section.section_key === "project-stories.hero";
   const source = section.content_source ?? "manual";
+  const sectionMeta = getSectionAdminMeta(section);
 
   return (
     <form action={updateSiteSection} className="grid gap-5 border border-ink/12 bg-white p-6 lg:grid-cols-[1fr_420px]">
@@ -262,6 +275,9 @@ function SectionForm({
         <p className="mt-3 text-sm font-black uppercase tracking-[0.1em] text-navy">
           {placementGuidance[section.section_key] ?? "Recommended: clear commercial construction media."}
         </p>
+        <p className="mt-3 border-l-4 border-brand-red bg-warm-white p-4 text-sm font-bold leading-6 text-steel">
+          {sectionMeta.operatorNote}
+        </p>
 
         <fieldset className="mt-6 grid gap-3 border border-ink/10 bg-warm-white p-4">
           <legend className="px-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
@@ -269,7 +285,7 @@ function SectionForm({
           </legend>
           <label className="flex items-center gap-3 text-sm font-black">
             <input defaultChecked={source === "manual"} name="content_source" type="radio" value="manual" />
-            Manual media and copy
+            {sectionMeta.manualSourceLabel}
           </label>
           {supportsFeaturedProject ? (
             <label className="flex items-center gap-3 text-sm font-black">
@@ -365,7 +381,7 @@ function SectionForm({
             Selected media assets
           </p>
           <p className="mb-3 text-sm font-bold leading-6 text-steel">
-            Choose up to eight. They appear in the order shown here.
+            {sectionMeta.mediaSelectionNote}
           </p>
           <MediaAssetGroups mediaAssets={mediaAssets} selectedMediaIds={selectedMediaIds} />
         </div>
@@ -468,6 +484,54 @@ function MetricPill({ label, value }: { label: string; value: string }) {
       <p className="mt-1 text-2xl font-black text-navy">{value}</p>
     </div>
   );
+}
+
+function getSectionAdminMeta(section: SiteSection) {
+  if (section.section_key.startsWith("how-we-work.") && section.section_key !== "how-we-work.hero") {
+    return {
+      manualSourceLabel: "Stage media and copy",
+      mediaSelectionNote: "Choose one primary image or short clip for this workflow stage. If several are checked, the first selected asset is used on the public process tree.",
+      operatorNote: "This controls one step in the How We Work process tree. Visitors see this media and copy when they hover or tap the matching workflow stage.",
+    };
+  }
+
+  if (section.section_key === "how-we-work.hero") {
+    return {
+      manualSourceLabel: "Header copy and optional media",
+      mediaSelectionNote: "Choose one steady image or short clip for the How We Work header. Workflow-stage images are managed in the stage placements below.",
+      operatorNote: "This controls only the top page header. The process tree has separate placements so each stage can carry its own proof.",
+    };
+  }
+
+  if (section.section_key === "our-direction.hero") {
+    return {
+      manualSourceLabel: "Vision copy and image rail media",
+      mediaSelectionNote: "Choose up to eight images for the vision rail under the typography hero. These should feel like proof of where Grandvista is going.",
+      operatorNote: "This page no longer uses a normal image header. Headline and copy update the large vision hero; selected media appears below as the horizontal vision rail.",
+    };
+  }
+
+  if (section.section_key === "what-we-build.hero") {
+    return {
+      manualSourceLabel: "Image showcase and page copy",
+      mediaSelectionNote: "Choose up to eight images. This page is image-led, so the selected set becomes the main showcase visitors browse.",
+      operatorNote: "This page should make the work feel tangible. Strong images matter more here than extra text.",
+    };
+  }
+
+  if (section.section_key === "project-stories.hero") {
+    return {
+      manualSourceLabel: "Manual media and copy",
+      mediaSelectionNote: "Choose up to eight manual media assets, or switch to featured project stories to rotate full story cards.",
+      operatorNote: "This page is story-led. Use featured projects when the strongest proof is the full case study, not just a single image.",
+    };
+  }
+
+  return {
+    manualSourceLabel: "Manual media and copy",
+    mediaSelectionNote: "Choose up to eight. They appear in the order shown here where the public page supports multiple media assets.",
+    operatorNote: "This placement controls a visible section on the public website. Use concise copy and clear commercial construction media.",
+  };
 }
 
 function getSelectedProjectIds(section: SiteSection) {

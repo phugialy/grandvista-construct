@@ -3,7 +3,7 @@ import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { ProcessTree } from "@/components/marketing/process-tree";
-import { processPillars } from "@/lib/site-content";
+import { processWorkflowStages } from "@/lib/site-content";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 const risks = [
@@ -40,15 +40,15 @@ const audiences = [
 export default async function HowWeWorkPage() {
   const sections = await getSiteSections();
   const heroSection = sections["how-we-work.hero"];
-  const stageMedia =
-    heroSection?.section_media.length && heroSection.content_source !== "fallback"
-      ? heroSection.section_media
-      : [];
-  const processStages = processPillars.map((pillar, index) => ({
-    media: stageMedia.length > 0 ? stageMedia[index % stageMedia.length] : null,
-    text: getPillarCopy(pillar),
-    title: pillar,
-  }));
+  const processStages = processWorkflowStages.map((stage) => {
+    const stageSection = sections[stage.sectionKey];
+
+    return {
+      media: getSectionPrimaryMedia(stageSection),
+      text: stageSection?.body ?? stage.text,
+      title: stageSection?.headline ?? stage.title,
+    };
+  });
 
   return (
     <MarketingShell>
@@ -126,20 +126,4 @@ export default async function HowWeWorkPage() {
       />
     </MarketingShell>
   );
-}
-
-function getPillarCopy(pillar: string) {
-  const copy: Record<string, string> = {
-    "Project Discovery": "Clarify the business need, decision stage, site context, and the practical goal behind the project.",
-    "Scope Intelligence": "Identify what the project actually requires before cost, schedule, and field pressure start moving.",
-    "Budget Awareness": "Surface likely cost risks early so owners can make practical choices with better context.",
-    "Schedule Planning": "Think through timing, dependencies, long-lead items, and project-stage reality before execution.",
-    "Permit and Inspection Readiness": "Approach the work with awareness of city process, code requirements, and documentation needs.",
-    "Trade Coordination": "Manage moving parts between trades, materials, access, sequencing, and site constraints.",
-    "Field Accountability": "Stay close to field activity, owner priorities, conditions, and the schedule pressure that matters.",
-    "Owner Communication": "Keep conversations clear enough that issues, changes, and decisions are handled before they drift.",
-    "Turnover Discipline": "Close the work with the next purpose of the space in mind, not just the last construction task.",
-  };
-
-  return copy[pillar] ?? "Support the work with clearer planning, coordination, and accountable execution.";
 }

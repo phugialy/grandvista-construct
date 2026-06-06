@@ -41,6 +41,54 @@ export const processPillars = [
   "Turnover Discipline",
 ];
 
+export const processWorkflowStages = [
+  {
+    sectionKey: "how-we-work.discovery",
+    title: "Project Discovery",
+    text: "Clarify the business need, decision stage, site context, and the practical goal behind the project.",
+  },
+  {
+    sectionKey: "how-we-work.scope",
+    title: "Scope Intelligence",
+    text: "Identify what the project actually requires before cost, schedule, and field pressure start moving.",
+  },
+  {
+    sectionKey: "how-we-work.budget",
+    title: "Budget Awareness",
+    text: "Surface likely cost risks early so owners can make practical choices with better context.",
+  },
+  {
+    sectionKey: "how-we-work.schedule",
+    title: "Schedule Planning",
+    text: "Think through timing, dependencies, long-lead items, and project-stage reality before execution.",
+  },
+  {
+    sectionKey: "how-we-work.permit",
+    title: "Permit and Inspection Readiness",
+    text: "Approach the work with awareness of city process, code requirements, and documentation needs.",
+  },
+  {
+    sectionKey: "how-we-work.trade",
+    title: "Trade Coordination",
+    text: "Manage moving parts between trades, materials, access, sequencing, and site constraints.",
+  },
+  {
+    sectionKey: "how-we-work.field",
+    title: "Field Accountability",
+    text: "Stay close to field activity, owner priorities, conditions, and the schedule pressure that matters.",
+  },
+  {
+    sectionKey: "how-we-work.communication",
+    title: "Owner Communication",
+    text: "Keep conversations clear enough that issues, changes, and decisions are handled before they drift.",
+  },
+  {
+    sectionKey: "how-we-work.turnover",
+    title: "Turnover Discipline",
+    text: "Close the work with the next purpose of the space in mind, not just the last construction task.",
+  },
+];
+
 export const confidenceAudiences = [
   {
     audience: "Business Owners",
