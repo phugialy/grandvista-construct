@@ -83,7 +83,7 @@ export function MediaAssignmentWorkspace({
   const filterCounts = {
     all: assets.length,
     images: assets.filter((asset) => asset.media_type === "image").length,
-    unassigned: assets.filter((asset) => asset.usage_labels.length === 0 && asset.tags.length === 0).length,
+    unassigned: assets.filter((asset) => asset.usage_labels.length === 0).length,
     used: assets.filter((asset) => asset.usage_labels.length > 0).length,
     videos: assets.filter((asset) => asset.media_type === "video").length,
   };
@@ -91,7 +91,7 @@ export function MediaAssignmentWorkspace({
     if (filter === "images") return asset.media_type === "image";
     if (filter === "videos") return asset.media_type === "video";
     if (filter === "used") return asset.usage_labels.length > 0;
-    if (filter === "unassigned") return asset.usage_labels.length === 0 && asset.tags.length === 0;
+    if (filter === "unassigned") return asset.usage_labels.length === 0;
     return true;
   });
 
@@ -137,15 +137,19 @@ export function MediaAssignmentWorkspace({
 
         {selectedIds.length > 0 ? (
           <div className="mt-5 flex flex-col justify-between gap-3 border border-navy/15 bg-warm-white p-4 md:flex-row md:items-center">
-            <p className="text-sm font-black text-navy">{selectedIds.length} selected for assignment</p>
-            <button
-              className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-steel hover:text-brand-red"
-              onClick={clearSelection}
-              type="button"
-            >
-              <X size={16} />
-              Clear
-            </button>
+            <p className="text-sm font-black text-navy">{selectedIds.length} selected</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <QuickArchiveForm selectedIds={selectedIds} />
+              <QuickDeleteForm selectedIds={selectedIds} />
+              <button
+                className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-steel hover:text-brand-red"
+                onClick={clearSelection}
+                type="button"
+              >
+                <X size={16} />
+                Clear
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -390,6 +394,37 @@ function DeleteMediaForm({ selectedIds }: { selectedIds: string[] }) {
       />
       <button className="bg-brand-red px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white disabled:opacity-40" disabled={selectedIds.length === 0} type="submit">
         Delete Permanently
+      </button>
+    </form>
+  );
+}
+
+function QuickArchiveForm({ selectedIds }: { selectedIds: string[] }) {
+  return (
+    <form action={archiveSelectedMedia}>
+      <HiddenSelectedAssets selectedIds={selectedIds} />
+      <button className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-navy hover:text-brand-red" type="submit">
+        <Archive size={16} />
+        Archive
+      </button>
+    </form>
+  );
+}
+
+function QuickDeleteForm({ selectedIds }: { selectedIds: string[] }) {
+  return (
+    <form
+      action={deleteSelectedMedia}
+      onSubmit={(event) => {
+        if (!window.confirm("Permanently delete selected media files and remove them from pages/projects?")) {
+          event.preventDefault();
+        }
+      }}
+    >
+      <HiddenSelectedAssets selectedIds={selectedIds} />
+      <button className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-brand-red hover:text-navy" type="submit">
+        <Trash2 size={16} />
+        Delete
       </button>
     </form>
   );

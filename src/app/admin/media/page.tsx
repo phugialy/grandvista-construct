@@ -66,8 +66,13 @@ type SiteSectionMediaUsage = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminMediaPage() {
+export default async function AdminMediaPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
   await requireAdmin();
+  const { status } = searchParams ? await searchParams : {};
 
   const supabase = getSupabaseServiceClient();
   const [
@@ -110,6 +115,8 @@ export default async function AdminMediaPage() {
         description="Upload jobsite proof, keep files web-ready, and choose assets for project stories."
       />
       <section className="section-shell grid gap-6 py-10">
+        {status ? <MediaStatusBanner status={status} /> : null}
+
         <div className="grid gap-4 md:grid-cols-3">
           <Metric label="Unassigned" value={unassignedCount} />
           <Metric label="Used on site" value={usedCount} />
@@ -126,6 +133,26 @@ export default async function AdminMediaPage() {
       </section>
     </main>
   );
+}
+
+function MediaStatusBanner({ status }: { status: string }) {
+  const messages: Record<string, { tone: "good" | "bad" | "neutral"; text: string }> = {
+    archived: { tone: "neutral", text: "Selected media was moved to archive." },
+    assigned: { tone: "good", text: "Selected media was assigned successfully." },
+    deleted: { tone: "good", text: "Selected media was permanently deleted from the library." },
+    error: { tone: "bad", text: "Something blocked that media action. Try again or check whether the file is still attached somewhere." },
+    missing: { tone: "bad", text: "Select at least one media item before running that action." },
+    tagged: { tone: "good", text: "Selected media tags were updated." },
+  };
+  const message = messages[status] ?? { tone: "neutral" as const, text: "Media library updated." };
+  const className =
+    message.tone === "bad"
+      ? "border-brand-red/30 bg-brand-red/8 text-brand-red"
+      : message.tone === "good"
+        ? "border-navy/20 bg-white text-navy"
+        : "border-ink/12 bg-white text-ink";
+
+  return <p className={`border p-4 text-sm font-black ${className}`}>{message.text}</p>;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
