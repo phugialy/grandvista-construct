@@ -140,12 +140,12 @@ export function MediaShowcaseHero({
           ) : null}
 
           {media.length > 1 ? (
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex max-w-full flex-wrap gap-2">
                 {media.map((item, index) => (
                   <button
                     aria-label={`Show media ${index + 1}`}
-                    className={`h-2.5 w-9 ${index === activeIndex ? "bg-brand-red" : "bg-white/28 hover:bg-white/60"}`}
+                    className={`h-2.5 w-7 sm:w-9 ${index === activeIndex ? "bg-brand-red" : "bg-white/28 hover:bg-white/60"}`}
                     key={item.id}
                     onClick={() => setActiveIndex(index)}
                     type="button"
