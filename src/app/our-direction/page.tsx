@@ -57,7 +57,7 @@ export default async function OurDirectionPage() {
       <section className="border-b border-white/10 bg-ink text-white">
         <div className="section-shell py-20">
           <p className="eyebrow">Our Direction</p>
-          <h1 className="mt-6 max-w-7xl text-5xl font-black leading-[0.96] sm:text-7xl lg:text-8xl">
+          <h1 className="mt-6 max-w-7xl text-4xl font-black leading-[0.96] [overflow-wrap:anywhere] sm:text-7xl lg:text-8xl">
             {heroSection?.headline ??
               "Built for today's commercial projects. Structured for tomorrow's growth."}
           </h1>

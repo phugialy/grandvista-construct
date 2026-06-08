@@ -39,7 +39,7 @@ export function PageHero({
       <div className="section-shell grid gap-10 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
         <div>
           <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-5 max-w-5xl text-4xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 max-w-5xl text-4xl font-black leading-[0.98] [overflow-wrap:anywhere] sm:text-6xl lg:text-7xl">
             {title}
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-white/72">{copy}</p>

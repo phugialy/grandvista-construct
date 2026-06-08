@@ -64,7 +64,7 @@ export function MediaShowcaseHero({
       <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.72fr_1.08fr] lg:items-center">
         <div>
           <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[0.98] sm:text-6xl lg:text-6xl">
+          <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[0.98] [overflow-wrap:anywhere] sm:text-6xl lg:text-6xl">
             {title}
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/72 sm:text-lg">{copy}</p>

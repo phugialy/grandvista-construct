@@ -29,7 +29,7 @@ export default async function Home() {
         <div className="section-shell grid gap-10 py-12 sm:py-16 lg:min-h-[700px] lg:grid-cols-[0.66fr_1.34fr] lg:items-center">
           <div className="max-w-2xl">
             <p className="eyebrow mb-6">Commercial construction with direction</p>
-            <h1 className="max-w-2xl text-4xl font-black leading-[0.96] tracking-normal sm:text-6xl lg:text-6xl">
+            <h1 className="max-w-2xl text-4xl font-black leading-[0.96] tracking-normal [overflow-wrap:anywhere] sm:text-6xl lg:text-6xl">
               {heroSection?.headline ?? "Important Projects Deserve a Builder With Direction"}
             </h1>
             <p className="mt-7 max-w-xl text-base leading-8 text-white/74 sm:text-lg">
