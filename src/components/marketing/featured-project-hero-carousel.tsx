@@ -42,7 +42,7 @@ export function FeaturedProjectHeroCarousel({ projects }: { projects: PublishedP
       <div className="section-shell grid gap-10 py-16 lg:grid-cols-[1.06fr_0.94fr] lg:items-center">
         <div>
           <p className="eyebrow">Featured Project Story</p>
-          <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 max-w-5xl text-4xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
             {activeProject.title}
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-white/72">
@@ -83,48 +83,54 @@ export function FeaturedProjectHeroCarousel({ projects }: { projects: PublishedP
           ) : null}
         </div>
 
-        <div className="relative min-h-[430px] overflow-hidden border border-white/14 bg-[#151925]">
-          {activeMedia ? <ProjectHeroMedia media={activeMedia} title={activeProject.title} /> : <FallbackVisual />}
-          <div className="absolute inset-0 bg-ink/32" />
+        <div className="grid gap-4">
+          <div className="relative aspect-[4/3] min-h-0 overflow-hidden border border-white/14 bg-[#151925] sm:min-h-[360px] lg:min-h-[430px]">
+            {activeMedia ? <ProjectHeroMedia media={activeMedia} title={activeProject.title} /> : <FallbackVisual />}
+            <div className="absolute inset-0 bg-ink/32" />
 
-          <div className="absolute inset-x-6 bottom-6 grid gap-3 sm:grid-cols-2">
+            <div className="absolute inset-x-6 bottom-6 hidden gap-3 sm:grid sm:grid-cols-2">
+              <HeroStat label="Project Type" value={activeProject.project_type ?? "Project Story"} />
+              <HeroStat label="Location" value={activeProject.location ?? "Grandvista Project"} />
+            </div>
+
+            {slides.length > 1 ? (
+              <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-4 sm:left-6 sm:right-6 sm:top-6">
+                <div className="flex gap-2">
+                  {slides.map((project, index) => (
+                    <button
+                      aria-label={`Show ${project.title}`}
+                      className={`h-2.5 w-8 ${index === activeIndex ? "bg-brand-red" : "bg-white/34 hover:bg-white/70"}`}
+                      key={project.id}
+                      onClick={() => setActiveIndex(index)}
+                      type="button"
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    aria-label="Previous featured story"
+                    className="grid h-10 w-10 place-items-center border border-white/24 bg-ink/70 text-white hover:bg-white hover:text-ink sm:h-11 sm:w-11"
+                    onClick={() => move(-1)}
+                    type="button"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+                  <button
+                    aria-label="Next featured story"
+                    className="grid h-10 w-10 place-items-center border border-white/24 bg-ink/70 text-white hover:bg-white hover:text-ink sm:h-11 sm:w-11"
+                    onClick={() => move(1)}
+                    type="button"
+                  >
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <div className="grid gap-3 sm:hidden">
             <HeroStat label="Project Type" value={activeProject.project_type ?? "Project Story"} />
             <HeroStat label="Location" value={activeProject.location ?? "Grandvista Project"} />
           </div>
-
-          {slides.length > 1 ? (
-            <div className="absolute left-6 right-6 top-6 flex items-center justify-between gap-4">
-              <div className="flex gap-2">
-                {slides.map((project, index) => (
-                  <button
-                    aria-label={`Show ${project.title}`}
-                    className={`h-2.5 w-8 ${index === activeIndex ? "bg-brand-red" : "bg-white/34 hover:bg-white/70"}`}
-                    key={project.id}
-                    onClick={() => setActiveIndex(index)}
-                    type="button"
-                  />
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  aria-label="Previous featured story"
-                  className="grid h-11 w-11 place-items-center border border-white/24 bg-ink/70 text-white hover:bg-white hover:text-ink"
-                  onClick={() => move(-1)}
-                  type="button"
-                >
-                  <ArrowLeft size={18} />
-                </button>
-                <button
-                  aria-label="Next featured story"
-                  className="grid h-11 w-11 place-items-center border border-white/24 bg-ink/70 text-white hover:bg-white hover:text-ink"
-                  onClick={() => move(1)}
-                  type="button"
-                >
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
     </section>

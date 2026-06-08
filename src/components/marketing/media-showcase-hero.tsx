@@ -64,7 +64,7 @@ export function MediaShowcaseHero({
       <div className="section-shell grid gap-10 py-16 lg:grid-cols-[0.72fr_1.08fr] lg:items-center">
         <div>
           <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-6xl">
+          <h1 className="mt-5 max-w-4xl text-4xl font-black leading-[0.98] sm:text-6xl lg:text-6xl">
             {title}
           </h1>
           <p className="mt-7 max-w-2xl text-base leading-8 text-white/72 sm:text-lg">{copy}</p>
@@ -113,7 +113,7 @@ export function MediaShowcaseHero({
               <Maximize2 size={19} />
             </div>
             {stats.length > 0 ? (
-              <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:inset-x-5 sm:bottom-5 sm:grid-cols-2">
+              <div className="absolute inset-x-4 bottom-4 hidden gap-3 sm:inset-x-5 sm:bottom-5 sm:grid sm:grid-cols-2">
                 {stats.map((stat) => (
                   <div key={stat.label} className="bg-ink/88 p-5">
                     <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
@@ -125,6 +125,19 @@ export function MediaShowcaseHero({
               </div>
             ) : null}
           </button>
+
+          {stats.length > 0 ? (
+            <div className="grid gap-3 sm:hidden">
+              {stats.map((stat) => (
+                <div key={stat.label} className="bg-ink/88 p-5">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
+                    {stat.label}
+                  </p>
+                  <p className="mt-2 text-xl font-black">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
           {media.length > 1 ? (
             <div className="flex items-center justify-between gap-4">

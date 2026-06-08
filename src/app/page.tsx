@@ -26,10 +26,10 @@ export default async function Home() {
   return (
     <MarketingShell>
       <section className="border-b border-ink/10 bg-ink text-white">
-        <div className="section-shell grid min-h-[700px] gap-10 py-16 lg:grid-cols-[0.66fr_1.34fr] lg:items-center">
+        <div className="section-shell grid gap-10 py-12 sm:py-16 lg:min-h-[700px] lg:grid-cols-[0.66fr_1.34fr] lg:items-center">
           <div className="max-w-2xl">
             <p className="eyebrow mb-6">Commercial construction with direction</p>
-            <h1 className="max-w-2xl text-5xl font-black leading-[0.96] tracking-normal sm:text-6xl lg:text-6xl">
+            <h1 className="max-w-2xl text-4xl font-black leading-[0.96] tracking-normal sm:text-6xl lg:text-6xl">
               {heroSection?.headline ?? "Important Projects Deserve a Builder With Direction"}
             </h1>
             <p className="mt-7 max-w-xl text-base leading-8 text-white/74 sm:text-lg">
@@ -53,7 +53,7 @@ export default async function Home() {
           </div>
 
           <div className="grid gap-4">
-            <div className="relative aspect-video min-h-[340px] overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] lg:min-h-0">
+            <div className="relative aspect-[4/3] min-h-0 overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] sm:aspect-video">
               {heroMedia ? (
                 <>
                   <ManagedMedia

@@ -601,7 +601,7 @@ function getSelectedMediaIds(section: SiteSection) {
 
 function MediaPreview({ asset }: { asset: MediaAsset }) {
   if (asset.media_type === "video") {
-    return <video className="h-full w-full object-cover" muted playsInline src={asset.public_url} />;
+    return <video className="h-full w-full object-contain" muted playsInline src={asset.public_url} />;
   }
 
   // eslint-disable-next-line @next/next/no-img-element
