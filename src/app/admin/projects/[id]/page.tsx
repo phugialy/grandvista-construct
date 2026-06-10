@@ -10,8 +10,6 @@ type Params = {
   id: string;
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function EditProjectPage({ params }: { params: Promise<Params> }) {
   await requireAdmin();
 
@@ -20,7 +18,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
   const { data: project, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
+      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
     )
     .eq("id", id)
     .single();

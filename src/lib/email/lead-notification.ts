@@ -1,3 +1,5 @@
+import { getSupabaseServiceClient } from "@/lib/supabase/server";
+
 type LeadNotification = {
   name: string;
   company: string | null;
@@ -10,22 +12,47 @@ type LeadNotification = {
   description: string | null;
 };
 
-export async function sendLeadNotification(lead: LeadNotification) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const to = process.env.LEAD_NOTIFY_EMAIL;
-  const from = process.env.LEAD_NOTIFY_FROM ?? "Grandvista Website <onboarding@resend.dev>";
+async function getNotificationRecipients(): Promise<string[]> {
+  const supabase = getSupabaseServiceClient();
+  const { data } = await supabase
+    .from("notification_recipients")
+    .select("email")
+    .eq("active", true)
+    .order("created_at", { ascending: true });
 
-  if (!apiKey || !to) {
+  if (data && data.length > 0) {
+    return (data as { email: string }[]).map((r) => r.email);
+  }
+
+  const envEmail = process.env.LEAD_NOTIFY_EMAIL?.trim();
+  return envEmail ? [envEmail] : [];
+}
+
+export async function sendLeadNotification(lead: LeadNotification) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.LEAD_NOTIFY_FROM?.trim() ?? "Grandvista <noreply@grandvista-construction.com>";
+
+  if (!apiKey) {
     return;
   }
 
-  await sendEmail(apiKey, {
-    from,
-    html: buildInternalLeadEmailHtml(lead),
-    subject: `New Grandvista project inquiry: ${lead.projectType}`,
-    text: buildInternalLeadEmailText(lead),
-    to,
-  });
+  const recipients = await getNotificationRecipients();
+
+  if (recipients.length === 0) {
+    return;
+  }
+
+  await Promise.all(
+    recipients.map((to) =>
+      sendEmail(apiKey, {
+        from,
+        html: buildInternalLeadEmailHtml(lead),
+        subject: `New Grandvista project inquiry: ${lead.projectType}`,
+        text: buildInternalLeadEmailText(lead),
+        to,
+      }),
+    ),
+  );
 
   await sendEmail(apiKey, {
     from,

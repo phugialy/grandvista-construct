@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 
 const ADMIN_COOKIE = "grandvista_admin";
 
@@ -19,6 +20,7 @@ export async function isAdminAuthenticated() {
 }
 
 export async function requireAdmin() {
+  await connection();
   if (!(await isAdminAuthenticated())) {
     redirect("/admin/login");
   }

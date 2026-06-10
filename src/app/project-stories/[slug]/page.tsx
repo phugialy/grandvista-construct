@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MapPin } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { connection } from "next/server";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { getPublishedProjectBySlug } from "@/lib/supabase/public-data";
@@ -10,9 +13,42 @@ type Params = {
   slug: string;
 };
 
-export const revalidate = 300;
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  await connection();
+  const { slug } = await params;
+  const project = await getPublishedProjectBySlug(slug);
 
-export default async function ProjectStoryDetailPage({ params }: { params: Promise<Params> }) {
+  if (!project) {
+    return { title: "Project Story | Grandvista" };
+  }
+
+  const title = project.seo_title ?? `${project.title} | Grandvista Project Story`;
+  const description =
+    project.seo_description ?? project.summary ?? project.project_intent ?? undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://grandvista-construction.com/project-stories/${slug}`,
+      siteName: "Grandvista Construction",
+      type: "article",
+    },
+  };
+}
+
+export default function ProjectStoryDetailPage({ params }: { params: Promise<Params> }) {
+  return (
+    <Suspense fallback={null}>
+      <StoryPage params={params} />
+    </Suspense>
+  );
+}
+
+async function StoryPage({ params }: { params: Promise<Params> }) {
+  await connection();
   const { slug } = await params;
   const project = await getPublishedProjectBySlug(slug);
 
@@ -28,14 +64,16 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
     { label: "Project Type", value: project.project_type },
     { label: "Location", value: project.location },
   ].filter((fact) => hasContent(fact.value));
-  const storyBlocks = [
-    { title: "Project Summary", text: project.summary ?? project.project_intent },
-    { title: "Client Goal", text: project.client_goal },
-    { title: "Project Pressure", text: joinSignals(project.project_pressures) ?? project.stakes },
-    { title: "Construction Challenge", text: project.challenge },
-    { title: "Delivery Approach", text: project.delivery_approach },
-    { title: "Built Outcome", text: joinSignals(project.built_outcomes) ?? project.built_outcome, wide: true },
-  ].filter((block) => hasContent(block.text));
+  const storyBlocks = project.story_body
+    ? null
+    : [
+        { title: "Project Summary", text: project.summary ?? project.project_intent },
+        { title: "Client Goal", text: project.client_goal },
+        { title: "Project Pressure", text: joinSignals(project.project_pressures) ?? project.stakes },
+        { title: "Construction Challenge", text: project.challenge },
+        { title: "Delivery Approach", text: project.delivery_approach },
+        { title: "Built Outcome", text: joinSignals(project.built_outcomes) ?? project.built_outcome, wide: true },
+      ].filter((block) => hasContent(block.text));
 
   return (
     <MarketingShell>
@@ -95,7 +133,14 @@ export default async function ProjectStoryDetailPage({ params }: { params: Promi
         </div>
       </section>
 
-      {storyBlocks.length > 0 ? (
+      {project.story_body ? (
+        <section className="section-shell py-14">
+          <article className="border border-ink/12 bg-white p-8 lg:p-12">
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Project Story</p>
+            <p className="mt-6 text-lg leading-9 text-steel">{project.story_body}</p>
+          </article>
+        </section>
+      ) : storyBlocks && storyBlocks.length > 0 ? (
         <section className="section-shell py-14">
           <div className="grid gap-5 lg:grid-cols-2">
             {storyBlocks.map((block) => (

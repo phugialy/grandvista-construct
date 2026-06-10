@@ -18,6 +18,7 @@ type ProjectFormData = {
   client_type?: string | null;
   project_type?: string | null;
   summary?: string | null;
+  story_body?: string | null;
   client_goal?: string | null;
   project_pressures?: string[] | null;
   built_outcomes?: string[] | null;
@@ -77,37 +78,31 @@ export function ProjectForm({
         </section>
 
         <section className="border border-ink/12 bg-white p-6">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Short story</p>
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Project story</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-steel">
+            Write one paragraph covering the project intent, what was at stake, the challenge, how it was delivered, and the built outcome.
+          </p>
           <div className="mt-5 grid gap-5">
             <label className="grid gap-2 font-bold">
-              One short project summary
+              Full project story
               <textarea
-                className={`${inputClass} min-h-32 resize-y`}
+                className={`${inputClass} min-h-52 resize-y`}
+                defaultValue={project?.story_body ?? ""}
+                name="story_body"
+                placeholder="Example: Grandvista built out a 4,200 sq ft commercial tenant space inside an active strip center, coordinating three trades around live neighboring tenants and a hard opening deadline..."
+              />
+            </label>
+            <label className="grid gap-2 font-bold">
+              Listing description
+              <span className="text-xs font-normal text-steel">Short summary shown on project cards. Auto-fills SEO description if blank.</span>
+              <textarea
+                className={`${inputClass} min-h-24 resize-y`}
                 defaultValue={project?.summary ?? ""}
                 maxLength={520}
                 name="summary"
                 placeholder="Example: Commercial finish-out prepared for opening with trade coordination, inspection awareness, and durable daily-use details."
               />
             </label>
-            <label className="grid gap-2 font-bold">
-              Client goal
-              <select className={inputClass} defaultValue={project?.client_goal ?? ""} name="client_goal">
-                <option value="">Select goal</option>
-                {clientGoals.map((goal) => (
-                  <option key={goal} value={goal}>
-                    {goal}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </section>
-
-        <section className="border border-ink/12 bg-white p-6">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Story signals</p>
-          <div className="mt-5 grid gap-6 md:grid-cols-2">
-            <CheckGroup name="project_pressures" options={projectPressures} selected={selectedPressures} title="Project pressure" />
-            <CheckGroup name="built_outcomes" options={builtOutcomes} selected={selectedOutcomes} title="Built outcome" />
           </div>
         </section>
 
@@ -171,10 +166,8 @@ export function ProjectForm({
           </div>
         </section>
 
-        <details className="border border-ink/12 bg-white p-6">
-          <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-            Slug & SEO
-          </summary>
+        <section className="border border-ink/12 bg-white p-6">
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Slug & SEO</p>
           <div className="mt-5 grid gap-4">
             <label className="grid gap-2 font-bold">
               Slug
@@ -182,19 +175,20 @@ export function ProjectForm({
             </label>
             <label className="grid gap-2 font-bold">
               SEO title
-              <input className={inputClass} defaultValue={project?.seo_title ?? ""} name="seo_title" />
+              <input className={inputClass} defaultValue={project?.seo_title ?? ""} name="seo_title" placeholder="Auto-filled if blank" />
             </label>
             <label className="grid gap-2 font-bold">
               SEO description
+              <span className="text-xs font-normal text-steel">Max 156 characters. Auto-filled from listing description if blank.</span>
               <textarea
-                className={`${inputClass} min-h-28 resize-y`}
+                className={`${inputClass} min-h-24 resize-y`}
                 defaultValue={project?.seo_description ?? ""}
                 maxLength={156}
                 name="seo_description"
               />
             </label>
           </div>
-        </details>
+        </section>
 
         <button
           className="bg-navy px-6 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"

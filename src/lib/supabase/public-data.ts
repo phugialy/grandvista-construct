@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { getSupabaseServiceClient } from "./server";
 
 export type ProjectCategory = {
@@ -17,6 +17,7 @@ export type PublishedProject = {
   client_type: string | null;
   project_type: string | null;
   summary: string | null;
+  story_body: string | null;
   client_goal: string | null;
   project_pressures: string[] | null;
   built_outcomes: string[] | null;
@@ -99,54 +100,58 @@ type SectionMediaRow = {
   media_assets: SiteSectionMediaAsset | SiteSectionMediaAsset[] | null;
 };
 
-export const getProjectCategories = unstable_cache(
-  async () => {
-    const supabase = getSupabaseServiceClient();
-    const { data, error } = await supabase
-      .from("project_categories")
-      .select("id,slug,title,summary,sort_order")
-      .order("sort_order", { ascending: true });
+export async function getProjectCategories(): Promise<ProjectCategory[]> {
+  "use cache";
+  cacheTag("project-categories");
+  cacheLife({ revalidate: 300 });
 
-    if (error) {
-      console.error("Failed to load project categories", error);
-      return [];
-    }
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("project_categories")
+    .select("id,slug,title,summary,sort_order")
+    .order("sort_order", { ascending: true });
 
-    return (data ?? []) as ProjectCategory[];
-  },
-  ["project-categories"],
-  { revalidate: 300 },
-);
+  if (error) {
+    console.error("Failed to load project categories", error);
+    return [];
+  }
 
-export const getPublishedProjects = unstable_cache(
-  async () => {
-    const supabase = getSupabaseServiceClient();
-    const { data, error } = await supabase
-      .from("projects")
-      .select(
-        "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
-      )
-      .eq("published", true)
-      .order("featured", { ascending: false })
-      .order("created_at", { ascending: false });
+  return (data ?? []) as ProjectCategory[];
+}
 
-    if (error) {
-      console.error("Failed to load published projects", error);
-      return [];
-    }
+export async function getPublishedProjects(): Promise<PublishedProject[]> {
+  "use cache";
+  cacheTag("published-projects");
+  cacheLife({ revalidate: 300 });
 
-    return (data ?? []) as PublishedProject[];
-  },
-  ["published-projects"],
-  { revalidate: 300 },
-);
-
-export async function getPublishedProjectBySlug(slug: string) {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+    )
+    .eq("published", true)
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to load published projects", error);
+    return [];
+  }
+
+  return (data ?? []) as PublishedProject[];
+}
+
+export async function getPublishedProjectBySlug(slug: string): Promise<PublishedProject | null> {
+  "use cache";
+  cacheTag(`project-${slug}`);
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select(
+      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
     )
     .eq("slug", slug)
     .eq("published", true)
@@ -160,42 +165,42 @@ export async function getPublishedProjectBySlug(slug: string) {
   return data as PublishedProject;
 }
 
-export const getSiteSections = unstable_cache(
-  async () => {
-    const supabase = getSupabaseServiceClient();
-    const { data, error } = await supabase
-      .from("site_sections")
-      .select(
-        "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,media_assets(id,public_url,media_type,alt_text,caption)",
-      )
-      .eq("published", true)
-      .order("sort_order", { ascending: true });
+export async function getSiteSections(): Promise<Record<string, SiteSection>> {
+  "use cache";
+  cacheTag("site-sections");
+  cacheLife({ revalidate: 300 });
 
-    if (error) {
-      console.error("Failed to load site sections", error);
-      return {};
-    }
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("site_sections")
+    .select(
+      "id,section_key,page_slug,placement,label,description,headline,body,media_asset_id,content_source,featured_project_id,media_assets(id,public_url,media_type,alt_text,caption)",
+    )
+    .eq("published", true)
+    .order("sort_order", { ascending: true });
 
-    const rawSections = (data ?? []) as RawSiteSection[];
-    const sectionIds = rawSections.map((section) => section.id);
-    const [featuredProjectsBySectionId, mediaBySectionId] = await Promise.all([
-      getFeaturedProjectsBySectionId(sectionIds),
-      getSectionMediaBySectionId(sectionIds),
-    ]);
-    const sections = rawSections.map((section) => ({
-      ...section,
-      media_assets: Array.isArray(section.media_assets)
-        ? section.media_assets[0] ?? null
-        : section.media_assets,
-      featured_projects: featuredProjectsBySectionId.get(section.id) ?? [],
-      section_media: mediaBySectionId.get(section.id) ?? [],
-    }));
+  if (error) {
+    console.error("Failed to load site sections", error);
+    return {};
+  }
 
-    return Object.fromEntries(sections.map((section) => [section.section_key, section]));
-  },
-  ["site-sections"],
-  { revalidate: 300 },
-);
+  const rawSections = (data ?? []) as RawSiteSection[];
+  const sectionIds = rawSections.map((section) => section.id);
+  const [featuredProjectsBySectionId, mediaBySectionId] = await Promise.all([
+    getFeaturedProjectsBySectionId(sectionIds),
+    getSectionMediaBySectionId(sectionIds),
+  ]);
+  const sections = rawSections.map((section) => ({
+    ...section,
+    media_assets: Array.isArray(section.media_assets)
+      ? section.media_assets[0] ?? null
+      : section.media_assets,
+    featured_projects: featuredProjectsBySectionId.get(section.id) ?? [],
+    section_media: mediaBySectionId.get(section.id) ?? [],
+  }));
+
+  return Object.fromEntries(sections.map((section) => [section.section_key, section]));
+}
 
 async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
   const featuredProjectsBySectionId = new Map<string, PublishedProject[]>();
@@ -208,7 +213,7 @@ async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
   const { data, error } = await supabase
     .from("site_section_projects")
     .select(
-      "site_section_id,sort_order,projects(id,slug,title,location,client_type,project_type,summary,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
+      "site_section_id,sort_order,projects(id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
     )
     .in("site_section_id", sectionIds)
     .order("sort_order", { ascending: true });

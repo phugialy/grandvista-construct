@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ClipboardCheck, FileSearch, MessageSquareText } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 import { submitProjectInquiry } from "./actions";
+
+export const metadata: Metadata = {
+  title: "Start a Project | Talk to Grandvista Commercial Construction",
+  description:
+    "Start a commercial project conversation with Grandvista. Share the project type, stage, timeline, budget range, and what the space needs to make possible.",
+  openGraph: {
+    title: "Start a Project | Talk to Grandvista Commercial Construction",
+    description:
+      "Start a commercial project conversation with Grandvista. Share the project type, stage, timeline, budget range, and what the space needs to make possible.",
+    url: "https://grandvista-construction.com/start-a-project",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const projectTypes = [
   "Commercial Interior",
@@ -59,25 +76,31 @@ const nextSteps = [
   },
 ];
 
-export default function StartProjectPage({
+export default async function StartProjectPage({
   searchParams,
 }: {
   searchParams?: Promise<{ status?: string }>;
 }) {
-  const statusPromise = searchParams ?? Promise.resolve({});
+  const sections = await getSiteSections();
+  const heroSection = sections["start-a-project.hero"];
+  const statusPromise: Promise<{ status?: string }> = searchParams ?? Promise.resolve({});
 
   return (
     <MarketingShell>
       <PageHero
         eyebrow="Start a Project"
-        title="Start with the project behind the project."
-        copy="This is not a free-estimate form. It is a project intake built to understand the business need, current stage, schedule pressure, budget context, and practical next decision."
+        title={heroSection?.headline ?? "Start with the project behind the project."}
+        copy={
+          heroSection?.body ??
+          "This is not a free-estimate form. It is a project intake built to understand the business need, current stage, schedule pressure, budget context, and practical next decision."
+        }
         secondaryHref="/how-we-work"
         secondaryLabel="Review The Process"
         stats={[
           { label: "Captures", value: "Scope and stage" },
           { label: "Purpose", value: "Better first conversation" },
         ]}
+        visualMedia={getSectionPrimaryMedia(heroSection)}
       />
 
       <section className="section-shell grid gap-12 py-20 lg:grid-cols-[0.8fr_1.2fr]">
@@ -99,7 +122,9 @@ export default function StartProjectPage({
           </div>
         </div>
         <form action={submitProjectInquiry} className="grid gap-4 border border-ink/12 bg-white p-6">
-          <StatusMessage statusPromise={statusPromise} />
+          <Suspense fallback={null}>
+            <StatusMessage statusPromise={statusPromise} />
+          </Suspense>
           <div className="grid gap-4 md:grid-cols-2">
             <input className={fieldClass} name="name" placeholder="Name" required />
             <input className={fieldClass} name="company" placeholder="Company" />

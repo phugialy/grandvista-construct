@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AlertTriangle, ClipboardCheck, HardHat, MessageSquareText } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -5,6 +6,20 @@ import { PageHero } from "@/components/marketing/page-hero";
 import { ProcessTree } from "@/components/marketing/process-tree";
 import { processWorkflowStages } from "@/lib/site-content";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+
+export const metadata: Metadata = {
+  title: "How We Work | Construction Process | Grandvista",
+  description:
+    "Grandvista's 9-stage process covers project discovery through turnover discipline. Construction is built in the field, but won in the planning.",
+  openGraph: {
+    title: "How We Work | Construction Process | Grandvista",
+    description:
+      "Grandvista's 9-stage process covers project discovery through turnover discipline. Construction is built in the field, but won in the planning.",
+    url: "https://grandvista-construction.com/how-we-work",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const risks = [
   "Scope gaps before pricing",

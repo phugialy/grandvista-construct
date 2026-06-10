@@ -5,7 +5,7 @@ import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const maxImageSide = 2400;
-const imageQuality = 0.82;
+const imageQuality = 0.91;
 const maxVideoBytes = 50 * 1024 * 1024;
 const maxFilesPerBatch = 20;
 const iPhoneImageTypes = new Set(["image/heic", "image/heif"]);
@@ -189,7 +189,7 @@ async function prepareFile(file: File) {
     return resizeRasterImage(converted);
   }
 
-  if (!file.type.startsWith("image/") || file.size < 1400 * 1024) {
+  if (!file.type.startsWith("image/") || file.size < 2800 * 1024) {
     return file;
   }
 

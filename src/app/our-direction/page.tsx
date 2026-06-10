@@ -1,9 +1,24 @@
+import type { Metadata } from "next";
 import { BarChart3, Handshake, Layers3, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { VisionImageRail } from "@/components/marketing/vision-image-rail";
 import { getSiteSections } from "@/lib/supabase/public-data";
+
+export const metadata: Metadata = {
+  title: "Our Direction | Built for What Comes Next | Grandvista",
+  description:
+    "Grandvista is building toward larger commercial, corporate, and industrial environments through stronger documentation habits, disciplined field standards, and deeper partnerships.",
+  openGraph: {
+    title: "Our Direction | Built for What Comes Next | Grandvista",
+    description:
+      "Grandvista is building toward larger commercial, corporate, and industrial environments through stronger documentation habits, disciplined field standards, and deeper partnerships.",
+    url: "https://grandvista-construction.com/our-direction",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const today = [
   "Commercial interiors",

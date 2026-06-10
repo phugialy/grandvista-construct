@@ -78,6 +78,11 @@ const pageTabs: PageTab[] = [
     label: "Company",
     slug: "company",
   },
+  {
+    description: "Project intake page header and supporting copy.",
+    label: "Start a Project",
+    slug: "start-a-project",
+  },
 ];
 
 const pagePreviewLinks: Record<string, string> = {
@@ -86,6 +91,7 @@ const pagePreviewLinks: Record<string, string> = {
   home: "/",
   "our-direction": "/our-direction",
   "project-stories": "/project-stories",
+  "start-a-project": "/start-a-project",
   "what-we-build": "/what-we-build",
 };
 
@@ -105,13 +111,12 @@ const placementGuidance: Record<string, string> = {
   "how-we-work.turnover": "Recommended: closeout, finished space, clean handoff, or ready-to-operate proof. One image is enough.",
   "project-stories.hero": "Recommended: strong construction/project image, 16:9.",
   "project-stories.empty": "Recommended: branded proof image until real case studies are published.",
+  "start-a-project.hero": "Recommended: one strong image that communicates a project in progress or a finished commercial space. Supports the intake form context.",
   "our-direction.hero": "Recommended: images for the vision rail under the hero, not a header overlay. Use current work, future-leaning proof, and real field ambition.",
 };
 
 const inputClass =
   "min-h-12 border border-ink/14 bg-white p-4 text-base text-ink outline-none transition placeholder:text-steel/70 focus:border-navy";
-
-export const dynamic = "force-dynamic";
 
 export default async function AdminWebsitePage({
   searchParams,
@@ -524,6 +529,14 @@ function getSectionAdminMeta(section: SiteSection) {
       manualSourceLabel: "Manual media and copy",
       mediaSelectionNote: "Choose up to eight manual media assets, or switch to featured project stories to rotate full story cards.",
       operatorNote: "This page is story-led. Use featured projects when the strongest proof is the full case study, not just a single image.",
+    };
+  }
+
+  if (section.section_key === "start-a-project.hero") {
+    return {
+      manualSourceLabel: "Header copy and optional media",
+      mediaSelectionNote: "Choose one image or short clip to accompany the project intake page header. One asset is enough.",
+      operatorNote: "This controls the page header on the Start a Project form. Headline and copy update the top of the page; selected media appears beside the text on larger screens.",
     };
   }
 
