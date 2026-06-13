@@ -33,8 +33,13 @@ function getSelect(formData: FormData, key: string, allowed: string[]) {
   return allowed.includes(value) ? value : null;
 }
 
-function fallbackSeoTitle(title: string) {
-  return title ? `${title} | Grandvista` : null;
+function fallbackSeoTitle(title: string, projectType: string | null, location: string | null) {
+  if (!title) {
+    return null;
+  }
+
+  const context = [projectType, location].filter(Boolean).join(" / ");
+  return context ? `${title} | ${context} | Grandvista` : `${title} | Grandvista Project Story`;
 }
 
 function fallbackSeoDescription(formData: FormData) {
@@ -44,9 +49,19 @@ function fallbackSeoDescription(formData: FormData) {
   const summary = nullableString(formData, "summary");
   const storyBody = nullableString(formData, "story_body");
 
-  if (summary) return summary.slice(0, 156);
-  if (storyBody) return storyBody.slice(0, 156);
-  return [title, projectType, location].filter(Boolean).join(" / ").slice(0, 156) || null;
+  const source =
+    summary ??
+    storyBody ??
+    [
+      title,
+      projectType,
+      location,
+      "commercial construction project story by Grandvista Construction",
+    ]
+      .filter(Boolean)
+      .join(" / ");
+
+  return cleanSeoText(source).slice(0, 156) || null;
 }
 
 async function getUniqueSlug(baseSlug: string, projectId?: string) {
@@ -82,17 +97,18 @@ async function projectPayload(formData: FormData, projectId?: string) {
   const summary = nullableString(formData, "summary");
   const storyBody = nullableString(formData, "story_body");
   const projectType = getSelect(formData, "project_type", projectTypes);
+  const location = nullableString(formData, "location");
 
   return {
     slug,
     title,
-    location: nullableString(formData, "location"),
+    location,
     client_type: nullableString(formData, "client_type"),
     project_type: projectType,
     summary,
     story_body: storyBody,
     tags: getSelections(formData, "tags", projectTags),
-    seo_title: nullableString(formData, "seo_title") || fallbackSeoTitle(title),
+    seo_title: nullableString(formData, "seo_title") || fallbackSeoTitle(title, projectType, location),
     seo_description: nullableString(formData, "seo_description") || fallbackSeoDescription(formData),
     project_intent: summary,
     featured: getBoolean(formData, "featured"),
@@ -267,4 +283,11 @@ function revalidateProjectPaths(slug?: string) {
     revalidateTag(`project-${slug}`, "default");
     revalidatePath(`/project-stories/${slug}`);
   }
+}
+
+function cleanSeoText(value: string) {
+  return value
+    .replace(/\*\*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }

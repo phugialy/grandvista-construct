@@ -7,7 +7,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { getPublishedProjectBySlug } from "@/lib/supabase/public-data";
+import { getPublishedProjectBySlug, type PublishedProject, type ProjectMedia } from "@/lib/supabase/public-data";
 
 type Params = {
   slug: string;
@@ -22,19 +22,37 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     return { title: "Project Story | Grandvista" };
   }
 
-  const title = project.seo_title ?? `${project.title} | Grandvista Project Story`;
-  const description =
-    project.seo_description ?? project.summary ?? project.project_intent ?? undefined;
+  const title = project.seo_title ?? buildSeoTitle(project);
+  const description = project.seo_description ?? buildSeoDescription(project);
+  const canonical = `/project-stories/${slug}`;
+  const socialImage = getSocialImage(project);
 
   return {
     title,
     description,
+    alternates: {
+      canonical,
+    },
     openGraph: {
       title,
       description,
-      url: `https://grandvista-construction.com/project-stories/${slug}`,
+      url: canonical,
       siteName: "Grandvista Construction",
       type: "article",
+      images: socialImage
+        ? [
+            {
+              url: socialImage.url,
+              alt: socialImage.alt ?? `${project.title} project story`,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: socialImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: socialImage ? [socialImage.url] : undefined,
     },
   };
 }
@@ -67,9 +85,16 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
   const storyParagraphs = formatStoryParagraphs(
     project.story_body ?? project.summary ?? project.project_intent,
   );
+  const jsonLd = buildProjectJsonLd(project, slug);
 
   return (
     <MarketingShell>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+        type="application/ld+json"
+      />
       <section className="bg-ink text-white">
         <div className="section-shell py-16">
           <Link
@@ -209,4 +234,89 @@ function formatStoryParagraphs(value?: string | null) {
     .split(/\r?\n{2,}|\r?\n/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function buildSeoTitle(project: PublishedProject) {
+  const context = [project.project_type, project.location].filter(Boolean).join(" / ");
+  return context
+    ? `${project.title} | ${context} | Grandvista`
+    : `${project.title} | Grandvista Project Story`;
+}
+
+function buildSeoDescription(project: PublishedProject) {
+  const source =
+    project.summary ??
+    project.story_body ??
+    project.project_intent ??
+    [project.title, project.project_type, project.location].filter(Boolean).join(" / ");
+
+  return cleanText(source).slice(0, 156) || undefined;
+}
+
+function getSocialImage(project: PublishedProject): ProjectMedia | null {
+  return (
+    project.project_media?.find((media) => media.role === "hero" && media.media_type === "image") ??
+    project.project_media?.find((media) => media.media_type === "image") ??
+    null
+  );
+}
+
+function buildProjectJsonLd(project: PublishedProject, slug: string) {
+  const url = `https://grandvista-construction.com/project-stories/${slug}`;
+  const image = getSocialImage(project);
+  const description = buildSeoDescription(project);
+
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: project.title,
+      description,
+      image: image?.url,
+      url,
+      mainEntityOfPage: url,
+      dateModified: project.updated_at,
+      author: {
+        "@type": "Organization",
+        name: "Grandvista Construction",
+        url: "https://grandvista-construction.com",
+      },
+      publisher: {
+        "@type": "Organization",
+        name: "Grandvista Construction",
+        url: "https://grandvista-construction.com",
+      },
+      about: [
+        project.project_type,
+        project.location,
+        "Commercial construction",
+        "Construction project story",
+      ].filter(Boolean),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Project Stories",
+          item: "https://grandvista-construction.com/project-stories",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: project.title,
+          item: url,
+        },
+      ],
+    },
+  ];
+}
+
+function cleanText(value: string) {
+  return value
+    .replace(/\*\*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }

@@ -30,6 +30,7 @@ export type PublishedProject = {
   delivery_approach: string | null;
   built_outcome: string | null;
   featured: boolean;
+  updated_at: string | null;
   project_media?: ProjectMedia[];
 };
 
@@ -128,7 +129,7 @@ export async function getPublishedProjects(): Promise<PublishedProject[]> {
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order)",
     )
     .eq("published", true)
     .order("featured", { ascending: false })
@@ -151,7 +152,7 @@ export async function getPublishedProjectBySlug(slug: string): Promise<Published
   const { data, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order)",
+      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order)",
     )
     .eq("slug", slug)
     .eq("published", true)
@@ -213,7 +214,7 @@ async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
   const { data, error } = await supabase
     .from("site_section_projects")
     .select(
-      "site_section_id,sort_order,projects(id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,project_media(id,media_type,role,url,alt,caption,sort_order))",
+      "site_section_id,sort_order,projects(id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order))",
     )
     .in("site_section_id", sectionIds)
     .order("sort_order", { ascending: true });

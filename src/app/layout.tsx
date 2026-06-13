@@ -13,9 +13,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://grandvista-construction.com"),
   title: "Grandvista | America's Commercial Builder",
   description:
     "Grandvista is a growth-minded commercial construction partner building business environments with clear planning, field coordination, and accountable execution.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Grandvista | America's Commercial Builder",
+    description:
+      "Grandvista is a growth-minded commercial construction partner building business environments with clear planning, field coordination, and accountable execution.",
+    url: "/",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
