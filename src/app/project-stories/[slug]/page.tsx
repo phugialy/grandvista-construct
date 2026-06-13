@@ -64,16 +64,9 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
     { label: "Project Type", value: project.project_type },
     { label: "Location", value: project.location },
   ].filter((fact) => hasContent(fact.value));
-  const storyBlocks = project.story_body
-    ? null
-    : [
-        { title: "Project Summary", text: project.summary ?? project.project_intent },
-        { title: "Client Goal", text: project.client_goal },
-        { title: "Project Pressure", text: joinSignals(project.project_pressures) ?? project.stakes },
-        { title: "Construction Challenge", text: project.challenge },
-        { title: "Delivery Approach", text: project.delivery_approach },
-        { title: "Built Outcome", text: joinSignals(project.built_outcomes) ?? project.built_outcome, wide: true },
-      ].filter((block) => hasContent(block.text));
+  const storyParagraphs = formatStoryParagraphs(
+    project.story_body ?? project.summary ?? project.project_intent,
+  );
 
   return (
     <MarketingShell>
@@ -133,20 +126,18 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
         </div>
       </section>
 
-      {project.story_body ? (
+      {storyParagraphs.length > 0 ? (
         <section className="section-shell py-14">
-          <article className="border border-ink/12 bg-white p-8 lg:p-12">
-            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Project Story</p>
-            <p className="mt-6 text-lg leading-9 text-steel">{project.story_body}</p>
+          <article className="mx-auto max-w-4xl border border-ink/12 bg-white p-8 lg:p-12">
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+              Project Story
+            </p>
+            <div className="mt-6 grid gap-5 text-lg leading-9 text-steel">
+              {storyParagraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
           </article>
-        </section>
-      ) : storyBlocks && storyBlocks.length > 0 ? (
-        <section className="section-shell py-14">
-          <div className="grid gap-5 lg:grid-cols-2">
-            {storyBlocks.map((block) => (
-              <StoryBlock key={block.title} title={block.title} text={block.text} wide={block.wide} />
-            ))}
-          </div>
         </section>
       ) : null}
 
@@ -204,19 +195,18 @@ function Fact({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function StoryBlock({ title, text, wide = false }: { title: string; text: string | null; wide?: boolean }) {
-  return (
-    <article className={`border border-ink/12 bg-white p-7 ${wide ? "lg:col-span-2" : ""}`}>
-      <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">{title}</p>
-      <p className="mt-4 text-lg leading-8 text-steel">{text}</p>
-    </article>
-  );
-}
-
-function joinSignals(items: string[] | null) {
-  return items && items.length > 0 ? items.join(", ") : null;
-}
-
 function hasContent(value?: string | null) {
   return Boolean(value?.trim());
+}
+
+function formatStoryParagraphs(value?: string | null) {
+  if (!value?.trim()) {
+    return [];
+  }
+
+  return value
+    .replace(/\*\*/g, "")
+    .split(/\r?\n{2,}|\r?\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 }

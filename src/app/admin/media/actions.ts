@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
 import { slugifyProjectTitle } from "@/lib/admin-projects";
@@ -332,12 +332,14 @@ async function getUniqueProjectSlug(baseSlug: string) {
 }
 
 function revalidateWebsitePaths() {
+  revalidateTag("site-sections", "default");
   revalidatePath("/");
   revalidatePath("/project-stories");
   revalidatePath("/what-we-build");
   revalidatePath("/how-we-work");
   revalidatePath("/our-direction");
   revalidatePath("/company");
+  revalidatePath("/start-a-project");
   revalidatePath("/admin/media");
   revalidatePath("/admin/website");
 }

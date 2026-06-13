@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
@@ -38,7 +38,8 @@ export async function applyStoryBody(formData: FormData) {
   }
 
   const supabase = getSupabaseServiceClient();
-  const [, { error: updateError }] = await Promise.all([
+  const [{ data: project }, , { error: updateError }] = await Promise.all([
+    supabase.from("projects").select("slug").eq("id", projectId).maybeSingle(),
     supabase
       .from("agent_suggestions")
       .update({ status: "applied", reviewed_at: new Date().toISOString() })
@@ -55,5 +56,11 @@ export async function applyStoryBody(formData: FormData) {
   }
 
   revalidatePath("/admin/suggestions");
+  revalidateTag("published-projects", "default");
+  if (project?.slug) {
+    revalidateTag(`project-${project.slug}`, "default");
+    revalidatePath(`/project-stories/${project.slug}`);
+  }
+  revalidatePath("/project-stories");
   redirect(`/admin/projects/${projectId}?status=saved`);
 }

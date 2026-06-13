@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
@@ -50,12 +50,14 @@ export async function updateSiteSection(formData: FormData) {
 
   await syncFeaturedProjects(sectionId, contentSource === "featured_project" ? featuredProjectIds : []);
   await syncSectionMedia(sectionId, contentSource === "manual" ? mediaAssetIds : []);
+  revalidateTag("site-sections", "default");
   revalidatePath("/");
   revalidatePath("/project-stories");
   revalidatePath("/what-we-build");
   revalidatePath("/how-we-work");
   revalidatePath("/our-direction");
   revalidatePath("/company");
+  revalidatePath("/start-a-project");
   const pageQuery = pageSlug ? `page=${encodeURIComponent(pageSlug)}&` : "";
   redirect(`/admin/website?${pageQuery}status=saved`);
 }
