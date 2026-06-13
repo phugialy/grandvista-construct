@@ -26,14 +26,23 @@ export async function reviewSuggestion(formData: FormData) {
   redirect(`/admin/suggestions?status=${status}`);
 }
 
-export async function applyStoryBody(formData: FormData) {
+const projectSuggestionFields: Record<string, "story_body" | "summary" | "seo_title" | "seo_description"> = {
+  story_body: "story_body",
+  project_summary: "summary",
+  seo_title: "seo_title",
+  seo_description: "seo_description",
+};
+
+export async function applyProjectSuggestion(formData: FormData) {
   await requireAdmin();
 
   const suggestionId = (formData.get("suggestion_id") as string | null)?.trim() ?? "";
   const projectId = (formData.get("project_id") as string | null)?.trim() ?? "";
+  const type = (formData.get("type") as string | null)?.trim() ?? "";
   const content = (formData.get("content") as string | null)?.trim() ?? "";
+  const field = projectSuggestionFields[type];
 
-  if (!suggestionId || !projectId || !content) {
+  if (!suggestionId || !projectId || !content || !field) {
     redirect("/admin/suggestions?status=missing");
   }
 
@@ -46,12 +55,12 @@ export async function applyStoryBody(formData: FormData) {
       .eq("id", suggestionId),
     supabase
       .from("projects")
-      .update({ story_body: content, updated_at: new Date().toISOString() })
+      .update({ [field]: content, updated_at: new Date().toISOString() })
       .eq("id", projectId),
   ]);
 
   if (updateError) {
-    console.error("Apply story body failed", updateError);
+    console.error("Apply project suggestion failed", updateError);
     redirect("/admin/suggestions?status=error");
   }
 

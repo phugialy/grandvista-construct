@@ -9,6 +9,14 @@ type SuggestionPayload = {
   rationale?: string;
 };
 
+const maxContentLengthByType: Record<SuggestionPayload["type"], number> = {
+  seo_title: 70,
+  seo_description: 156,
+  story_body: 2400,
+  project_summary: 520,
+  content_idea: 800,
+};
+
 function isValidPayload(body: unknown): body is SuggestionPayload {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
@@ -23,6 +31,21 @@ function isValidPayload(body: unknown): body is SuggestionPayload {
     typeof b.content === "string" &&
     b.content.trim().length > 0
   );
+}
+
+function normalizeSuggestionContent(type: SuggestionPayload["type"], content: string) {
+  const cleaned = content
+    .replace(/^#+\s*/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  if (type === "story_body") {
+    return cleaned.slice(0, maxContentLengthByType[type]);
+  }
+
+  return cleaned.replace(/\s+/g, " ").slice(0, maxContentLengthByType[type]);
 }
 
 function authenticate(request: NextRequest) {
@@ -60,6 +83,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const content = normalizeSuggestionContent(body.type, body.content);
+
+  if (!content) {
+    return NextResponse.json({ error: "Suggestion content is empty after cleanup" }, { status: 422 });
+  }
+
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("agent_suggestions")
@@ -67,7 +96,7 @@ export async function POST(request: NextRequest) {
       type: body.type,
       target_type: body.target_type,
       target_id: body.target_id ?? null,
-      content: body.content.trim(),
+      content,
       rationale: body.rationale?.trim() ?? null,
       source: "agent",
       status: "pending",

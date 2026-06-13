@@ -41,6 +41,17 @@ export function ProjectForm({
   const action = project?.id ? updateProject : createProject;
   const selectedTags = project?.tags ?? [];
   const selectedGallery = project?.gallery_asset_ids ?? [];
+  const generatedPreviewTitle = [project?.title, project?.project_type, project?.location]
+    .filter(Boolean)
+    .join(" | ");
+  const seoPreviewTitle =
+    project?.seo_title ??
+    (generatedPreviewTitle || "Auto-created from project name, type, and location");
+  const seoPreviewDescription =
+    project?.seo_description ??
+    project?.summary ??
+    project?.story_body ??
+    "Auto-created from the listing description or project story when saved.";
 
   return (
     <form action={action} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -150,7 +161,13 @@ export function ProjectForm({
         </section>
 
         <section className="border border-ink/12 bg-white p-6">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Tags</p>
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+            Project signals
+          </p>
+          <p className="mt-3 text-sm font-bold leading-6 text-steel">
+            Optional. Leave this blank and the system will choose signals from the project type and
+            story. Use these only when you want to guide filters or search context.
+          </p>
           <div className="mt-5 grid gap-3">
             {projectTags.map((tag) => (
               <label key={tag} className="flex items-center gap-3 text-sm font-bold text-steel">
@@ -162,8 +179,22 @@ export function ProjectForm({
         </section>
 
         <section className="border border-ink/12 bg-white p-6">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Slug & SEO</p>
-          <div className="mt-5 grid gap-4">
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+            Search preview
+          </p>
+          <div className="mt-5 border border-ink/10 bg-warm-white p-4">
+            <p className="text-base font-black text-navy">{seoPreviewTitle}</p>
+            <p className="mt-2 text-sm leading-6 text-steel">{seoPreviewDescription.slice(0, 156)}</p>
+          </div>
+          <details className="mt-5">
+            <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.08em] text-ink hover:text-brand-red">
+              Advanced search overrides
+            </summary>
+            <p className="mt-3 text-sm font-bold leading-6 text-steel">
+              Most users can leave these blank. The site will create a slug, title, and description
+              from the project story.
+            </p>
+            <div className="mt-5 grid gap-4">
             <label className="grid gap-2 font-bold">
               Slug
               <input className={inputClass} defaultValue={project?.slug} name="slug" placeholder="Auto-created if blank" />
@@ -182,7 +213,8 @@ export function ProjectForm({
                 name="seo_description"
               />
             </label>
-          </div>
+            </div>
+          </details>
         </section>
 
         <button

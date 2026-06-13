@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { projectTags, projectTypes, slugifyProjectTitle } from "@/lib/admin-projects";
+import { inferProjectTags, projectTags, projectTypes, slugifyProjectTitle } from "@/lib/admin-projects";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -98,6 +98,7 @@ async function projectPayload(formData: FormData, projectId?: string) {
   const storyBody = nullableString(formData, "story_body");
   const projectType = getSelect(formData, "project_type", projectTypes);
   const location = nullableString(formData, "location");
+  const selectedTags = getSelections(formData, "tags", projectTags);
 
   return {
     slug,
@@ -107,7 +108,9 @@ async function projectPayload(formData: FormData, projectId?: string) {
     project_type: projectType,
     summary,
     story_body: storyBody,
-    tags: getSelections(formData, "tags", projectTags),
+    tags: selectedTags.length > 0
+      ? selectedTags
+      : inferProjectTags({ projectType, summary, storyBody }),
     seo_title: nullableString(formData, "seo_title") || fallbackSeoTitle(title, projectType, location),
     seo_description: nullableString(formData, "seo_description") || fallbackSeoDescription(formData),
     project_intent: summary,

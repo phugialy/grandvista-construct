@@ -55,6 +55,45 @@ export const projectTags = [
   "Ground-Up",
 ];
 
+export function inferProjectTags({
+  projectType,
+  summary,
+  storyBody,
+}: {
+  projectType: string | null;
+  summary: string | null;
+  storyBody: string | null;
+}) {
+  const tags = new Set<string>();
+  const type = projectType?.toLowerCase() ?? "";
+  const text = `${summary ?? ""} ${storyBody ?? ""}`.toLowerCase();
+
+  if (type.includes("interior") || type.includes("restaurant") || type.includes("retail") || type.includes("office")) {
+    tags.add("Commercial Interior");
+    tags.add("Interior");
+  }
+
+  if (type.includes("warehouse") || type.includes("industrial")) {
+    tags.add("Operational Facility");
+    tags.add("Interior");
+  }
+
+  if (type.includes("ground-up") || type.includes("tilt-wall") || type.includes("shell")) {
+    tags.add("Ground-Up");
+    tags.add("Exterior");
+  }
+
+  if (text.includes("finished") || text.includes("finish") || text.includes("turnover") || text.includes("opening")) {
+    tags.add("Finished Space");
+  }
+
+  if (text.includes("jobsite") || text.includes("construction") || text.includes("framing") || text.includes("rough-in")) {
+    tags.add("Jobsite");
+  }
+
+  return Array.from(tags).filter((tag) => projectTags.includes(tag));
+}
+
 export function slugifyProjectTitle(title: string) {
   return title
     .toLowerCase()

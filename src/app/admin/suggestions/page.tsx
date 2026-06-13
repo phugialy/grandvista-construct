@@ -2,7 +2,7 @@ import { Bot, CheckCircle, XCircle } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
-import { applyStoryBody, reviewSuggestion } from "./actions";
+import { applyProjectSuggestion, reviewSuggestion } from "./actions";
 
 type Suggestion = {
   id: string;
@@ -52,7 +52,6 @@ export default async function AdminSuggestionsPage({
     supabase
       .from("projects")
       .select("id,title,slug")
-      .eq("published", true)
       .order("title", { ascending: true }),
   ]);
 
@@ -69,7 +68,7 @@ export default async function AdminSuggestionsPage({
     <main className="min-h-screen bg-warm-white text-ink">
       <AdminNav
         title="Agent suggestions"
-        description="Review and apply SEO and story content suggested by the AI agent."
+        description="Review assisted SEO, summary, and story edits before they touch public project pages."
       />
 
       <section className="section-shell py-10">
@@ -94,11 +93,12 @@ export default async function AdminSuggestionsPage({
               <p className="eyebrow">AI agent suggestions</p>
             </div>
             <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight">
-              Review and apply AI-generated content
+              Review assisted content before it becomes project copy
             </h2>
             <p className="mt-3 max-w-2xl leading-7 text-steel">
-              Suggestions submitted by the AI agent gateway appear here. Accept, reject, or apply
-              them directly to project stories.
+              Suggestions submitted by the AI agent gateway appear here. Apply only the pieces that
+              sound accurate, grounded, and useful for buyers. Accept keeps a suggestion as reviewed;
+              apply updates the project.
             </p>
           </div>
         </div>
@@ -150,8 +150,8 @@ export default async function AdminSuggestionsPage({
               {typedSuggestions.map((suggestion) => {
                 const project = getProject(suggestion.target_id);
                 const label = typeLabels[suggestion.type] ?? suggestion.type;
-                const canApplyStoryBody =
-                  suggestion.type === "story_body" &&
+                const canApplyToProject =
+                  ["story_body", "project_summary", "seo_title", "seo_description"].includes(suggestion.type) &&
                   suggestion.target_type === "project" &&
                   project !== null &&
                   filterStatus === "pending";
@@ -200,16 +200,17 @@ export default async function AdminSuggestionsPage({
 
                       {filterStatus === "pending" ? (
                         <div className="flex shrink-0 flex-col gap-2">
-                          {canApplyStoryBody && project ? (
-                            <form action={applyStoryBody}>
+                          {canApplyToProject && project ? (
+                            <form action={applyProjectSuggestion}>
                               <input name="suggestion_id" type="hidden" value={suggestion.id} />
                               <input name="project_id" type="hidden" value={project.id} />
+                              <input name="type" type="hidden" value={suggestion.type} />
                               <input name="content" type="hidden" value={suggestion.content} />
                               <button
                                 className="flex w-full items-center justify-center gap-2 bg-navy px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
                                 type="submit"
                               >
-                                Apply to Story
+                                Apply to Project
                               </button>
                             </form>
                           ) : null}
