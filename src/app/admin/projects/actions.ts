@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { builtOutcomes, clientGoals, projectPressures, projectTags, projectTypes, slugifyProjectTitle } from "@/lib/admin-projects";
+import { projectTags, projectTypes, slugifyProjectTitle } from "@/lib/admin-projects";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -42,15 +42,11 @@ function fallbackSeoDescription(formData: FormData) {
   const projectType = getSelect(formData, "project_type", projectTypes);
   const location = nullableString(formData, "location");
   const summary = nullableString(formData, "summary");
+  const storyBody = nullableString(formData, "story_body");
 
-  if (summary) {
-    return summary.slice(0, 156);
-  }
-
-  return [title, projectType, location]
-    .filter(Boolean)
-    .join(" / ")
-    .slice(0, 156) || null;
+  if (summary) return summary.slice(0, 156);
+  if (storyBody) return storyBody.slice(0, 156);
+  return [title, projectType, location].filter(Boolean).join(" / ").slice(0, 156) || null;
 }
 
 async function getUniqueSlug(baseSlug: string, projectId?: string) {
@@ -84,10 +80,8 @@ async function projectPayload(formData: FormData, projectId?: string) {
   const title = getString(formData, "title");
   const slug = await getUniqueSlug(getString(formData, "slug") || slugifyProjectTitle(title), projectId);
   const summary = nullableString(formData, "summary");
+  const storyBody = nullableString(formData, "story_body");
   const projectType = getSelect(formData, "project_type", projectTypes);
-  const clientGoal = getSelect(formData, "client_goal", clientGoals);
-  const selectedPressures = getSelections(formData, "project_pressures", projectPressures);
-  const selectedOutcomes = getSelections(formData, "built_outcomes", builtOutcomes);
 
   return {
     slug,
@@ -96,17 +90,11 @@ async function projectPayload(formData: FormData, projectId?: string) {
     client_type: nullableString(formData, "client_type"),
     project_type: projectType,
     summary,
-    client_goal: clientGoal,
-    project_pressures: selectedPressures,
-    built_outcomes: selectedOutcomes,
+    story_body: storyBody,
     tags: getSelections(formData, "tags", projectTags),
     seo_title: nullableString(formData, "seo_title") || fallbackSeoTitle(title),
     seo_description: nullableString(formData, "seo_description") || fallbackSeoDescription(formData),
     project_intent: summary,
-    stakes: selectedPressures.join(", ") || null,
-    challenge: nullableString(formData, "challenge"),
-    delivery_approach: nullableString(formData, "delivery_approach"),
-    built_outcome: selectedOutcomes.join(", ") || null,
     featured: getBoolean(formData, "featured"),
     published: getBoolean(formData, "published"),
     updated_at: new Date().toISOString(),
@@ -272,9 +260,11 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
 }
 
 function revalidateProjectPaths(slug?: string) {
+  revalidateTag("published-projects", "default");
   revalidatePath("/project-stories");
 
   if (slug) {
+    revalidateTag(`project-${slug}`, "default");
     revalidatePath(`/project-stories/${slug}`);
   }
 }

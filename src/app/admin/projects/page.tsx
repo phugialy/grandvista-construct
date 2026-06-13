@@ -15,8 +15,6 @@ type AdminProject = {
   updated_at: string;
 };
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminProjectsPage() {
   await requireAdmin();
 

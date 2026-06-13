@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
@@ -10,6 +11,20 @@ import {
   processPillars,
 } from "@/lib/site-content";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+
+export const metadata: Metadata = {
+  title: "Important Projects Deserve a Builder With Direction | Grandvista",
+  description:
+    "Grandvista helps commercial property owners, operators, and developers move from business need to usable built environment through clear planning, field coordination, and accountable execution.",
+  openGraph: {
+    title: "Important Projects Deserve a Builder With Direction | Grandvista",
+    description:
+      "Grandvista helps commercial property owners, operators, and developers move from business need to usable built environment through clear planning, field coordination, and accountable execution.",
+    url: "https://grandvista-construction.com",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const proofPoints = [
   { label: "Audience", value: "Owners, operators, developers" },

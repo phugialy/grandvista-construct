@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Building2, Factory, Store, UsersRound } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
@@ -5,6 +6,20 @@ import { MediaShowcaseHero } from "@/components/marketing/media-showcase-hero";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { getProjectCategories, getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+
+export const metadata: Metadata = {
+  title: "What We Build | Commercial Construction Categories | Grandvista",
+  description:
+    "Grandvista builds commercial interiors, business build-outs, operational spaces, ground-up construction, and specialty commercial environments. Work organized around business use.",
+  openGraph: {
+    title: "What We Build | Commercial Construction Categories | Grandvista",
+    description:
+      "Grandvista builds commercial interiors, business build-outs, operational spaces, ground-up construction, and specialty commercial environments. Work organized around business use.",
+    url: "https://grandvista-construction.com/what-we-build",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const stakes = [
   {

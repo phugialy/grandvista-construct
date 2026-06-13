@@ -1,11 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BarChart3, ImageIcon, Inbox, Layers, PanelsTopLeft, PenLine, TrendingUp } from "lucide-react";
+import { BarChart3, Bot, ImageIcon, Inbox, Layers, PanelsTopLeft, PenLine, Settings, TrendingUp } from "lucide-react";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
-
-export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
@@ -105,6 +103,18 @@ export default async function AdminDashboardPage() {
             href="/admin/leads"
             icon={<Inbox size={24} />}
             title="Review Leads"
+          />
+          <HubCard
+            copy="Review SEO and story suggestions submitted by the AI agent gateway."
+            href="/admin/suggestions"
+            icon={<Bot size={24} />}
+            title="Suggestions"
+          />
+          <HubCard
+            copy="Manage lead notification recipients and system email configuration."
+            href="/admin/settings"
+            icon={<Settings size={24} />}
+            title="Settings"
           />
         </div>
       </section>

@@ -28,6 +28,12 @@ export function AdminNav({ title, description }: { title: string; description: s
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/projects/new">
               New Project
             </Link>
+            <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/suggestions">
+              Suggestions
+            </Link>
+            <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/settings">
+              Settings
+            </Link>
           </nav>
         </div>
         <form action={logoutAdmin}>

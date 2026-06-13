@@ -30,8 +30,6 @@ const statuses = [
   { label: "Archived", value: "archived" },
 ];
 
-export const dynamic = "force-dynamic";
-
 export default async function AdminLeadsPage() {
   await requireAdmin();
 

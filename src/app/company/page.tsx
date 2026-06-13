@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { BriefcaseBusiness, HardHat, MessagesSquare, Route, UsersRound } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 import { submitCompanyMessage } from "./actions";
+
+export const metadata: Metadata = {
+  title: "Company | About Grandvista Commercial Construction",
+  description:
+    "Grandvista is a commercial construction company grounded in planning, field coordination, and ownership-minded communication. Building toward larger commercial responsibility.",
+  openGraph: {
+    title: "Company | About Grandvista Commercial Construction",
+    description:
+      "Grandvista is a commercial construction company grounded in planning, field coordination, and ownership-minded communication. Building toward larger commercial responsibility.",
+    url: "https://grandvista-construction.com/company",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 const values = [
   "Plan before the field is under pressure.",
@@ -42,9 +58,8 @@ export default async function CompanyPage({
   searchParams?: Promise<{ status?: string }>;
 }) {
   const sections = await getSiteSections();
-  const params = await searchParams;
   const heroSection = sections["company.hero"];
-  const status = params?.status;
+  const statusPromise: Promise<{ status?: string }> = searchParams ?? Promise.resolve({});
 
   return (
     <MarketingShell>
@@ -152,21 +167,9 @@ export default async function CompanyPage({
             </p>
           </div>
           <form action={submitCompanyMessage} className="border border-ink/12 bg-white p-6">
-            {status === "message-sent" ? (
-              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
-                Message received. The Grandvista team will review it and follow up if needed.
-              </div>
-            ) : null}
-            {status === "missing" ? (
-              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
-                Please include your name, email, and message.
-              </div>
-            ) : null}
-            {status === "error" ? (
-              <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
-                Something went wrong while sending. Please try again.
-              </div>
-            ) : null}
+            <Suspense fallback={null}>
+              <CompanyFormStatus statusPromise={statusPromise} />
+            </Suspense>
             <div className="grid gap-4 md:grid-cols-2">
               <CompanyInput label="Name" name="name" required />
               <CompanyInput label="Email" name="email" required type="email" />
@@ -218,6 +221,40 @@ export default async function CompanyPage({
       />
     </MarketingShell>
   );
+}
+
+async function CompanyFormStatus({
+  statusPromise,
+}: {
+  statusPromise: Promise<{ status?: string }>;
+}) {
+  const { status } = await statusPromise;
+
+  if (status === "message-sent") {
+    return (
+      <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+        Message received. The Grandvista team will review it and follow up if needed.
+      </div>
+    );
+  }
+
+  if (status === "missing") {
+    return (
+      <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+        Please include your name, email, and message.
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="mb-6 border-l-4 border-brand-red bg-warm-white p-4 font-bold text-ink">
+        Something went wrong while sending. Please try again.
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function CompanyInput({

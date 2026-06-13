@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Camera, FileText, MapPin } from "lucide-react";
@@ -8,6 +9,20 @@ import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { SectionMediaHeroCarousel } from "@/components/marketing/section-media-hero-carousel";
 import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
+
+export const metadata: Metadata = {
+  title: "Project Stories | Commercial Construction Proof | Grandvista",
+  description:
+    "Real commercial construction work organized around business outcomes. Project stories with intent, challenge, delivery approach, and built results — not just photo galleries.",
+  openGraph: {
+    title: "Project Stories | Commercial Construction Proof | Grandvista",
+    description:
+      "Real commercial construction work organized around business outcomes. Project stories with intent, challenge, delivery approach, and built results — not just photo galleries.",
+    url: "https://grandvista-construction.com/project-stories",
+    siteName: "Grandvista Construction",
+    type: "website",
+  },
+};
 
 export default async function ProjectStoriesPage() {
   const [projects, sections] = await Promise.all([getPublishedProjects(), getSiteSections()]);
