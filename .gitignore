@@ -25,6 +25,7 @@
 # misc
 .DS_Store
 *.pem
+/_external_review/
 
 # debug
 npm-debug.log*
