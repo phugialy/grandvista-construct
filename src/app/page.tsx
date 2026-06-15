@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
@@ -35,84 +34,68 @@ const proofPoints = [
 export default async function Home() {
   const sections = await getSiteSections();
   const heroSection = sections["home.hero"];
-  const proofSection = sections["home.proof"];
   const heroMedia = getSectionPrimaryMedia(heroSection);
 
   return (
     <MarketingShell>
-      <section className="border-b border-ink/10 bg-ink text-white">
-        <div className="section-shell grid gap-10 py-12 sm:py-16 lg:min-h-[700px] lg:grid-cols-[0.66fr_1.34fr] lg:items-center">
-          <div className="max-w-2xl">
-            <p className="eyebrow mb-6">Commercial construction with direction</p>
-            <h1 className="max-w-2xl text-4xl font-black leading-[0.96] tracking-normal [overflow-wrap:anywhere] sm:text-6xl lg:text-6xl">
-              {heroSection?.headline ?? "Important Projects Deserve a Builder With Direction"}
+      <section className="relative isolate min-h-[calc(100vh-5rem)] overflow-hidden bg-ink text-white">
+        {heroMedia ? (
+          <ManagedMedia
+            altFallback={heroSection?.label ?? "Grandvista hero media"}
+            className="object-cover opacity-36"
+            media={heroMedia}
+            priority
+            sizes="100vw"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(8,9,106,0.78),transparent_35%),linear-gradient(135deg,#10131a,#08096a)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/86 to-navy/68" />
+        <div className="absolute inset-0 gv-grid-dark opacity-70" />
+        <div className="pointer-events-none absolute right-[-2vw] top-20 hidden text-[31vw] leading-none text-white/[0.035] lg:block gv-display">
+          GV
+        </div>
+        <div className="section-shell relative z-10 grid min-h-[calc(100vh-5rem)] items-end pb-12 pt-16">
+          <div className="max-w-5xl">
+            <p className="eyebrow mb-7">Commercial general contractor - Texas</p>
+            <h1 className="gv-display max-w-4xl text-[4.5rem] leading-[0.9] text-white sm:text-[7rem] lg:text-[9rem]">
+              America&apos;s
+              <span className="block text-transparent [-webkit-text-stroke:2px_var(--red)]">
+                Commercial
+              </span>
+              Builder<span className="text-brand-red">.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-8 text-white/74 sm:text-lg">
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-white/74">
               {heroSection?.body ??
-                "Grandvista helps owners, operators, and project teams move from business need to usable built environment through clear planning, field coordination, and accountable execution."}
+                "A growth-minded commercial construction partner building business environments with clear planning, field coordination, and accountable execution."}
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/start-a-project"
-                className="inline-flex h-12 items-center justify-center gap-2 bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
+                className="inline-flex h-14 items-center justify-center gap-2 bg-brand-red px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-white hover:text-navy"
               >
-                Start a Project Conversation <ArrowUpRight size={18} />
+                Start a Project <ArrowUpRight size={18} />
               </Link>
               <Link
-                href="/how-we-work"
-                className="inline-flex h-12 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
+                href="/what-we-build"
+                className="inline-flex h-14 items-center justify-center border border-white/22 px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:border-brand-red hover:text-brand-red"
               >
-                See How We Work
+                What We Build
               </Link>
             </div>
-          </div>
-
-          <div className="grid gap-4">
-            <div className="relative aspect-[4/3] min-h-0 overflow-hidden border border-white/14 bg-[#151925] shadow-[0_28px_80px_rgba(0,0,0,0.28)] sm:aspect-video">
-              {heroMedia ? (
-                <>
-                  <ManagedMedia
-                    altFallback={heroSection?.label ?? "Grandvista hero media"}
-                    className="object-cover opacity-90"
-                    media={heroMedia}
-                    priority
-                    sizes="(min-width: 1024px) 58vw, 100vw"
-                  />
-                  <div className="absolute inset-0 bg-ink/14" />
-                </>
-              ) : (
-                <>
-                  <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 opacity-80">
-                    {Array.from({ length: 36 }).map((_, index) => (
-                      <div key={index} className="border border-white/[0.035]" />
-                    ))}
-                  </div>
-                  <div className="absolute inset-x-8 top-8 h-44 bg-concrete/85" />
-                  <div className="absolute bottom-20 left-8 right-20 h-52 bg-white/10" />
-                  <div className="absolute bottom-8 left-20 right-8 h-28 bg-brand-red" />
-                  <div className="absolute right-8 top-28 w-28 border-t-[220px] border-l-[70px] border-t-white/22 border-l-transparent" />
-                </>
-              )}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-stretch">
-              <div className="border border-white/12 bg-white/[0.045] p-4">
-                <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-brand-red">
-                  Media system ready
-                </p>
-                <p className="mt-2 max-w-xl text-lg font-black leading-tight sm:text-xl">
-                  {proofSection?.body ??
-                    "Built to carry jobsite clips, project photography, and case-study proof."}
-                </p>
-              </div>
-              <div className="grid min-h-24 place-items-center border border-white/12 bg-white p-3 text-ink sm:min-w-40 sm:p-4">
-                <Image
-                  src="/grandvista-logo.jpg"
-                  alt="Grandvista logo"
-                  width={132}
-                  height={88}
-                  className="h-14 w-24 object-contain sm:h-16 sm:w-28"
-                />
-              </div>
+            <div className="mt-14 grid max-w-3xl gap-0 border-y border-white/12 sm:grid-cols-3">
+              {[
+                ["09", "Build Categories"],
+                ["09", "Step Delivery Process"],
+                ["TX", "Plano - Dallas - Houston"],
+              ].map(([value, label]) => (
+                <div key={label} className="border-white/12 py-5 sm:border-r sm:px-5 first:sm:pl-0 last:sm:border-r-0">
+                  <p className="gv-display text-4xl text-brand-red">{value}</p>
+                  <p className="mt-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-white/52">
+                    {label}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -176,12 +159,14 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="bg-navy py-20 text-white">
+      <section className="bg-ink py-20 text-white">
         <div className="section-shell grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="eyebrow">How We Work</p>
-            <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">
-              Construction is built in the field, but won in the planning.
+            <h2 className="gv-display mt-4 text-6xl leading-[0.95] sm:text-7xl">
+              Nine steps.
+              <br />
+              Zero guesswork.
             </h2>
             <p className="mt-6 leading-8 text-white/72">
               Grandvista&apos;s process should make owners feel safer, architects feel respected,
@@ -190,11 +175,11 @@ export default async function Home() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {processPillars.map((pillar, index) => (
-              <div key={pillar} className="flex items-center gap-4 border border-white/16 p-4">
-                <span className="flex h-10 w-10 items-center justify-center bg-white text-sm font-black text-navy">
+              <div key={pillar} className="border border-white/14 p-5 transition hover:border-brand-red hover:bg-white/5">
+                <span className="gv-display text-4xl text-brand-red">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="font-bold">{pillar}</span>
+                <p className="mt-3 font-black">{pillar}</p>
               </div>
             ))}
           </div>

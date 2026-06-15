@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowUpRight, Camera, FileText, MapPin } from "lucide-react";
+import { ArrowUpRight, Camera, FileText } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { FeaturedProjectHeroCarousel } from "@/components/marketing/featured-project-hero-carousel";
 import { ManagedMedia } from "@/components/marketing/managed-media";
@@ -78,58 +78,36 @@ export default async function ProjectStoriesPage() {
         />
       )}
 
-      {projects.length > 0 ? (
-        <section className="border-y border-ink/10 bg-white py-12">
-          <div className="section-shell grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-            <div>
-              <p className="eyebrow">Published Proof</p>
-              <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight">
-                Real work, organized around business outcomes.
-              </h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <ProofMetric label="Stories" value={String(projects.length)} />
-              <ProofMetric label="Project Types" value={String(projectTypes.length || 1)} />
-              <ProofMetric label="Markets" value={String(projectMarkets.length || 1)} />
-            </div>
-            {projectTypes.length > 0 ? (
-              <div className="lg:col-span-2">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-steel">
-                  Current story categories
-                </p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {projectTypes.map((type) => (
-                    <span
-                      className="border border-ink/12 bg-warm-white px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-navy"
-                      key={type}
-                    >
-                      {type}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
       <section className="section-shell py-20">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
-            <p className="eyebrow">Built Proof</p>
-            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight sm:text-5xl">
-              Built work that can start a serious project conversation.
+            <p className="eyebrow">03 - Project Stories</p>
+            <h2 className="gv-display mt-4 max-w-4xl text-6xl leading-[0.92] text-navy sm:text-7xl">
+              Case studies
+              <br />
+              over galleries
             </h2>
+            <p className="mt-5 max-w-2xl leading-7 text-steel">
+              Real work, organized around business outcomes.
+            </p>
           </div>
           <Link
             href="/start-a-project"
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-navy hover:text-brand-red"
+            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red hover:text-navy"
           >
             Discuss a similar project <ArrowUpRight size={16} />
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-5">
+        {projects.length > 0 ? (
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <ProofMetric label="Stories" value={String(projects.length)} />
+            <ProofMetric label="Project Types" value={String(projectTypes.length || 1)} />
+            <ProofMetric label="Markets" value={String(projectMarkets.length || 1)} />
+          </div>
+        ) : null}
+
+        <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {projects.length === 0 ? (
             <article className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
               <div className="relative min-h-64 overflow-hidden bg-ink">
@@ -164,14 +142,14 @@ export default async function ProjectStoriesPage() {
           ) : null}
 
           {projects.map((project) => (
-            <article key={project.id} className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
-              <div className="relative min-h-64 overflow-hidden bg-ink p-6 text-white">
+            <article key={project.id} className="group border border-ink/12 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative min-h-56 overflow-hidden bg-ink p-6 text-white">
                 {project.project_media?.find((media) => media.role === "hero" && media.media_type === "image")?.url ? (
                   <Image
                     alt={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.alt ?? project.title}
-                    className="object-cover opacity-80"
+                    className="object-cover opacity-72 transition duration-500 group-hover:scale-105 group-hover:opacity-86"
                     fill
-                    sizes="(min-width: 1024px) 38vw, 100vw"
+                    sizes="(min-width: 1024px) 33vw, 100vw"
                     src={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.url ?? ""}
                   />
                 ) : project.project_media?.find((media) => media.role === "hero" && media.media_type === "video")?.url ? (
@@ -191,20 +169,20 @@ export default async function ProjectStoriesPage() {
                     </p>
                   </>
                 )}
+                <div className="absolute bottom-4 left-4 bg-navy px-3 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-white">
+                  {[project.project_type, project.location].filter(Boolean).join(" - ")}
+                </div>
               </div>
-              <div>
-                <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-                  <MapPin size={16} /> {[project.project_type, project.location].filter(Boolean).join(" / ")}
-                </p>
-                <h3 className="mt-4 text-3xl font-black">{project.title}</h3>
-                <p className="mt-5 leading-8 text-steel">
+              <div className="p-6">
+                <h3 className="gv-display text-3xl leading-none text-navy">{project.title}</h3>
+                <p className="mt-5 min-h-24 text-sm leading-7 text-steel">
                   {project.summary ?? project.project_intent ?? project.stakes ?? project.built_outcome}
                 </p>
                 <Link
-                  className="mt-7 inline-flex items-center gap-2 bg-navy px-5 py-3 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
+                  className="mt-7 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-red hover:text-navy"
                   href={`/project-stories/${project.slug}`}
                 >
-                  View Story <ArrowUpRight size={16} />
+                  Read the Story <ArrowUpRight size={14} />
                 </Link>
               </div>
             </article>

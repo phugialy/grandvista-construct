@@ -20,7 +20,8 @@
   --color-steel: var(--steel);
   --color-brand-red: var(--red);
   --color-warm-white: var(--warm-white);
-  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Archivo", "Archivo Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Anton", "Anton Fallback", Impact, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
 }
 
@@ -45,4 +46,25 @@ body {
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.gv-display {
+  font-family: var(--font-anton), Impact, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.gv-grid-dark {
+  background-image:
+    linear-gradient(rgba(246, 243, 237, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(246, 243, 237, 0.09) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+.gv-grid-light {
+  background-image:
+    linear-gradient(rgba(16, 19, 26, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 19, 26, 0.08) 1px, transparent 1px);
+  background-size: 72px 72px;
 }

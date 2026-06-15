@@ -142,68 +142,75 @@ export default async function StartProjectPage({
               </option>
             ))}
           </select>
-          <div className="grid gap-4 md:grid-cols-2">
-            <select className={fieldClass} defaultValue="" name="construction_context">
-              <option value="" disabled>
-                New construction or existing space?
-              </option>
-              <option>New Construction</option>
-              <option>Existing Space</option>
-              <option>Not Sure Yet</option>
-            </select>
-            <select className={fieldClass} defaultValue="" name="current_stage">
-              <option value="" disabled>
-                Current stage
-              </option>
-              {currentStages.map((stage) => (
-                <option key={stage}>{stage}</option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <select className={fieldClass} defaultValue="" name="estimated_timeline">
-              <option value="" disabled>
-                Estimated timeline
-              </option>
-              {timelineOptions.map((timeline) => (
-                <option key={timeline}>{timeline}</option>
-              ))}
-            </select>
-            <select className={fieldClass} defaultValue="" name="estimated_budget_range">
-              <option value="" disabled>
-                Estimated budget range
-              </option>
-              {budgetOptions.map((budget) => (
-                <option key={budget}>{budget}</option>
-              ))}
-            </select>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <select className={fieldClass} defaultValue="" name="architect_involved">
-              <option value="" disabled>
-                Architect/designer involved?
-              </option>
-              <option>Yes</option>
-              <option>No</option>
-              <option>In Progress</option>
-              <option>Not Sure</option>
-            </select>
-            <select className={fieldClass} defaultValue="" name="permit_status">
-              <option value="" disabled>
-                Permit status
-              </option>
-              <option>Not Started</option>
-              <option>In Progress</option>
-              <option>Submitted</option>
-              <option>Approved</option>
-              <option>Not Sure</option>
-            </select>
-          </div>
           <textarea
             className={`${fieldClass} min-h-36 resize-y`}
             name="description"
-            placeholder="Short project description"
+            placeholder="Location, timeline, and what you need built"
           />
+          <details className="border border-ink/10 bg-warm-white p-4">
+            <summary className="cursor-pointer text-sm font-black uppercase tracking-[0.1em] text-navy">
+              Add project details
+            </summary>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <select className={fieldClass} defaultValue="" name="construction_context">
+                  <option value="" disabled>
+                    New construction or existing space?
+                  </option>
+                  <option>New Construction</option>
+                  <option>Existing Space</option>
+                  <option>Not Sure Yet</option>
+                </select>
+                <select className={fieldClass} defaultValue="" name="current_stage">
+                  <option value="" disabled>
+                    Current stage
+                  </option>
+                  {currentStages.map((stage) => (
+                    <option key={stage}>{stage}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <select className={fieldClass} defaultValue="" name="estimated_timeline">
+                  <option value="" disabled>
+                    Estimated timeline
+                  </option>
+                  {timelineOptions.map((timeline) => (
+                    <option key={timeline}>{timeline}</option>
+                  ))}
+                </select>
+                <select className={fieldClass} defaultValue="" name="estimated_budget_range">
+                  <option value="" disabled>
+                    Estimated budget range
+                  </option>
+                  {budgetOptions.map((budget) => (
+                    <option key={budget}>{budget}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <select className={fieldClass} defaultValue="" name="architect_involved">
+                  <option value="" disabled>
+                    Architect/designer involved?
+                  </option>
+                  <option>Yes</option>
+                  <option>No</option>
+                  <option>In Progress</option>
+                  <option>Not Sure</option>
+                </select>
+                <select className={fieldClass} defaultValue="" name="permit_status">
+                  <option value="" disabled>
+                    Permit status
+                  </option>
+                  <option>Not Started</option>
+                  <option>In Progress</option>
+                  <option>Submitted</option>
+                  <option>Approved</option>
+                  <option>Not Sure</option>
+                </select>
+              </div>
+            </div>
+          </details>
           <input name="utm_source" type="hidden" />
           <input name="utm_medium" type="hidden" />
           <input name="utm_campaign" type="hidden" />
@@ -211,7 +218,7 @@ export default async function StartProjectPage({
             type="submit"
             className="bg-navy px-6 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
           >
-            Submit Project Review
+            Start the Conversation
           </button>
         </form>
       </section>
