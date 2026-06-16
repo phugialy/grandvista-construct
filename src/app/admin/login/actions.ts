@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { setAdminSession, validateAdminCredentials } from "@/lib/admin-auth";
 
 export async function loginAdmin(formData: FormData) {
-  const session = validateAdminCredentials({
+  const session = await validateAdminCredentials({
     password: formData.get("password"),
     username: formData.get("username"),
   });

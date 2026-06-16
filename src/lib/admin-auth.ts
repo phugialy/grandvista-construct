@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { verifyAdminPassword } from "./admin-password";
+import { getSupabaseServiceClient } from "./supabase/server";
 
 const ADMIN_COOKIE = "grandvista_admin";
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
@@ -16,7 +18,9 @@ type AdminSessionPayload = {
 };
 
 type AdminAccount = {
-  password: string;
+  active: boolean;
+  password_hash: string;
+  password_salt: string;
   role: AdminRole;
   username: string;
 };
@@ -24,19 +28,6 @@ type AdminAccount = {
 const roleLabels: Record<AdminRole, string> = {
   master: "Master Admin",
   web: "Web Admin",
-};
-
-const credentialEnvByRole: Record<AdminRole, { legacyEmail: string; password: string; username: string }> = {
-  master: {
-    legacyEmail: "ADMIN_MASTER_EMAIL",
-    password: "ADMIN_MASTER_PASSWORD",
-    username: "ADMIN_MASTER_USERNAME",
-  },
-  web: {
-    legacyEmail: "ADMIN_WEB_ADMIN_EMAIL",
-    password: "ADMIN_WEB_ADMIN_PASSWORD",
-    username: "ADMIN_WEB_ADMIN_USERNAME",
-  },
 };
 
 export function getAdminRoleLabel(role: AdminRole) {
@@ -48,25 +39,7 @@ export function isAdminRole(value: unknown): value is AdminRole {
 }
 
 function getSessionSecret() {
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_ACCESS_TOKEN ||
-    process.env.ADMIN_MASTER_PASSWORD ||
-    process.env.ADMIN_WEB_ADMIN_PASSWORD ||
-    ""
-  );
-}
-
-function getAdminAccount(role: AdminRole): AdminAccount | null {
-  const env = credentialEnvByRole[role];
-  const username = (process.env[env.username] || process.env[env.legacyEmail])?.trim().toLowerCase();
-  const password = process.env[env.password] ?? "";
-
-  if (!username || !password) {
-    return null;
-  }
-
-  return { password, role, username };
+  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_ACCESS_TOKEN || "";
 }
 
 function safeCompare(value: string, expected: string) {
@@ -80,7 +53,28 @@ function safeCompare(value: string, expected: string) {
   return timingSafeEqual(valueBuffer, expectedBuffer);
 }
 
-export function validateAdminCredentials({
+async function getAdminAccount(username: string): Promise<AdminAccount | null> {
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("admin_users")
+    .select("username,role,password_hash,password_salt,active")
+    .eq("username", username)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load admin user", error);
+    return null;
+  }
+
+  if (!data || !isAdminRole(data.role)) {
+    return null;
+  }
+
+  return data as AdminAccount;
+}
+
+export async function validateAdminCredentials({
   password,
   username,
 }: {
@@ -92,17 +86,20 @@ export function validateAdminCredentials({
   }
 
   const normalizedUsername = username.trim().toLowerCase();
-  const account = (["master", "web"] as const)
-    .map((role) => getAdminAccount(role))
-    .find((candidate) => {
-      if (!candidate) {
-        return false;
-      }
-
-      return safeCompare(normalizedUsername, candidate.username) && safeCompare(password, candidate.password);
-    });
+  const account = await getAdminAccount(normalizedUsername);
 
   if (!account) {
+    return null;
+  }
+
+  if (
+    !safeCompare(normalizedUsername, account.username) ||
+    !verifyAdminPassword({
+      password,
+      passwordHash: account.password_hash,
+      passwordSalt: account.password_salt,
+    })
+  ) {
     return null;
   }
 
