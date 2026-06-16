@@ -9,16 +9,16 @@ const SESSION_TTL_SECONDS = 60 * 60 * 8;
 export type AdminRole = "master" | "web";
 
 type AdminSessionPayload = {
-  email: string;
   exp: number;
   iat: number;
   role: AdminRole;
+  username: string;
 };
 
 type AdminAccount = {
-  email: string;
   password: string;
   role: AdminRole;
+  username: string;
 };
 
 const roleLabels: Record<AdminRole, string> = {
@@ -26,14 +26,16 @@ const roleLabels: Record<AdminRole, string> = {
   web: "Web Admin",
 };
 
-const credentialEnvByRole: Record<AdminRole, { email: string; password: string }> = {
+const credentialEnvByRole: Record<AdminRole, { legacyEmail: string; password: string; username: string }> = {
   master: {
-    email: "ADMIN_MASTER_EMAIL",
+    legacyEmail: "ADMIN_MASTER_EMAIL",
     password: "ADMIN_MASTER_PASSWORD",
+    username: "ADMIN_MASTER_USERNAME",
   },
   web: {
-    email: "ADMIN_WEB_ADMIN_EMAIL",
+    legacyEmail: "ADMIN_WEB_ADMIN_EMAIL",
     password: "ADMIN_WEB_ADMIN_PASSWORD",
+    username: "ADMIN_WEB_ADMIN_USERNAME",
   },
 };
 
@@ -57,14 +59,14 @@ function getSessionSecret() {
 
 function getAdminAccount(role: AdminRole): AdminAccount | null {
   const env = credentialEnvByRole[role];
-  const email = process.env[env.email]?.trim().toLowerCase();
+  const username = (process.env[env.username] || process.env[env.legacyEmail])?.trim().toLowerCase();
   const password = process.env[env.password] ?? "";
 
-  if (!email || !password) {
+  if (!username || !password) {
     return null;
   }
 
-  return { email, password, role };
+  return { password, role, username };
 }
 
 function safeCompare(value: string, expected: string) {
@@ -79,15 +81,15 @@ function safeCompare(value: string, expected: string) {
 }
 
 export function validateAdminCredentials({
-  email,
   password,
   role,
+  username,
 }: {
-  email: unknown;
   password: unknown;
   role: AdminRole;
+  username: unknown;
 }) {
-  if (typeof email !== "string" || typeof password !== "string") {
+  if (typeof username !== "string" || typeof password !== "string") {
     return null;
   }
 
@@ -97,13 +99,13 @@ export function validateAdminCredentials({
     return null;
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedUsername = username.trim().toLowerCase();
 
-  if (!safeCompare(normalizedEmail, account.email) || !safeCompare(password, account.password)) {
+  if (!safeCompare(normalizedUsername, account.username) || !safeCompare(password, account.password)) {
     return null;
   }
 
-  return { email: account.email, role: account.role };
+  return { role: account.role, username: account.username };
 }
 
 function base64UrlEncode(value: string) {
@@ -147,20 +149,20 @@ function parseSessionCookie(value?: string): AdminSessionPayload | null {
     const now = Math.floor(Date.now() / 1000);
 
     if (
-      typeof payload.email !== "string" ||
       typeof payload.exp !== "number" ||
       typeof payload.iat !== "number" ||
       !isAdminRole(payload.role) ||
+      typeof payload.username !== "string" ||
       payload.exp <= now
     ) {
       return null;
     }
 
     return {
-      email: payload.email,
       exp: payload.exp,
       iat: payload.iat,
       role: payload.role,
+      username: payload.username,
     };
   } catch {
     return null;
@@ -202,17 +204,17 @@ export async function requireMasterAdmin() {
   }
 }
 
-export async function setAdminSession({ email, role }: { email: string; role: AdminRole }) {
+export async function setAdminSession({ role, username }: { role: AdminRole; username: string }) {
   const now = Math.floor(Date.now() / 1000);
   const cookieStore = await cookies();
 
   cookieStore.set(
     ADMIN_COOKIE,
     createSessionCookie({
-      email,
       exp: now + SESSION_TTL_SECONDS,
       iat: now,
       role,
+      username,
     }),
     {
       httpOnly: true,

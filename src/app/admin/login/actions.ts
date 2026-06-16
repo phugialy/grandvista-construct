@@ -12,9 +12,9 @@ function getRequestedRole(formData: FormData): AdminRole {
 export async function loginAdmin(formData: FormData) {
   const role = getRequestedRole(formData);
   const session = validateAdminCredentials({
-    email: formData.get("email"),
     password: formData.get("password"),
     role,
+    username: formData.get("username"),
   });
 
   if (!session) {

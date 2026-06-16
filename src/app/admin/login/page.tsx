@@ -37,18 +37,20 @@ export default async function AdminLoginPage({
           </p>
           {status === "invalid" ? (
             <p className="mt-6 border border-brand-red/30 bg-brand-red/8 p-4 text-sm font-bold text-brand-red">
-              The email or password did not match {selectedRole === "master" ? "master admin" : "web admin"} access.
+              The username or password did not match {selectedRole === "master" ? "master admin" : "web admin"} access.
             </p>
           ) : null}
           <input
             className="mt-8 w-full border border-ink/14 p-4 outline-none focus:border-navy"
-            name="email"
-            placeholder="Email"
+            autoComplete="username"
+            name="username"
+            placeholder="Username"
             required
-            type="email"
+            type="text"
           />
           <input
             className="mt-3 w-full border border-ink/14 p-4 outline-none focus:border-navy"
+            autoComplete="current-password"
             name="password"
             placeholder="Password"
             required
