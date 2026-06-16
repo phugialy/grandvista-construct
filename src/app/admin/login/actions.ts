@@ -1,23 +1,26 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { type AdminRole, getAdminTokenForRole, setAdminSession } from "@/lib/admin-auth";
+import { type AdminRole, isAdminRole, setAdminSession, validateAdminCredentials } from "@/lib/admin-auth";
 
 function getRequestedRole(formData: FormData): AdminRole {
   const requestedRole = formData.get("admin_role");
 
-  return requestedRole === "owner" ? "owner" : "management";
+  return isAdminRole(requestedRole) ? requestedRole : "web";
 }
 
 export async function loginAdmin(formData: FormData) {
-  const submittedToken = formData.get("access_token");
   const role = getRequestedRole(formData);
-  const expectedToken = getAdminTokenForRole(role);
+  const session = validateAdminCredentials({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role,
+  });
 
-  if (!expectedToken || typeof submittedToken !== "string" || submittedToken !== expectedToken) {
+  if (!session) {
     redirect(`/admin/login?status=invalid&role=${role}`);
   }
 
-  await setAdminSession(role);
+  await setAdminSession(session);
   redirect("/admin");
 }

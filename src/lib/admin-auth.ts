@@ -1,63 +1,181 @@
+import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
 const ADMIN_COOKIE = "grandvista_admin";
+const SESSION_TTL_SECONDS = 60 * 60 * 8;
 
-export type AdminRole = "owner" | "management";
+export type AdminRole = "master" | "web";
 
-const roleLabels: Record<AdminRole, string> = {
-  owner: "Owner",
-  management: "Management Web Control",
+type AdminSessionPayload = {
+  email: string;
+  exp: number;
+  iat: number;
+  role: AdminRole;
 };
 
-export function getAdminToken() {
-  return process.env.ADMIN_ACCESS_TOKEN ?? "";
-}
+type AdminAccount = {
+  email: string;
+  password: string;
+  role: AdminRole;
+};
+
+const roleLabels: Record<AdminRole, string> = {
+  master: "Master Admin",
+  web: "Web Admin",
+};
+
+const credentialEnvByRole: Record<AdminRole, { email: string; password: string }> = {
+  master: {
+    email: "ADMIN_MASTER_EMAIL",
+    password: "ADMIN_MASTER_PASSWORD",
+  },
+  web: {
+    email: "ADMIN_WEB_ADMIN_EMAIL",
+    password: "ADMIN_WEB_ADMIN_PASSWORD",
+  },
+};
 
 export function getAdminRoleLabel(role: AdminRole) {
   return roleLabels[role];
 }
 
-export function getAdminTokenForRole(role: AdminRole) {
-  const fallbackToken = getAdminToken();
-
-  if (role === "owner") {
-    return process.env.ADMIN_OWNER_ACCESS_TOKEN || fallbackToken;
-  }
-
-  return process.env.ADMIN_MANAGEMENT_ACCESS_TOKEN || fallbackToken;
+export function isAdminRole(value: unknown): value is AdminRole {
+  return value === "master" || value === "web";
 }
 
-function parseAdminCookie(value?: string) {
+function getSessionSecret() {
+  return (
+    process.env.ADMIN_SESSION_SECRET ||
+    process.env.ADMIN_ACCESS_TOKEN ||
+    process.env.ADMIN_MASTER_PASSWORD ||
+    process.env.ADMIN_WEB_ADMIN_PASSWORD ||
+    ""
+  );
+}
+
+function getAdminAccount(role: AdminRole): AdminAccount | null {
+  const env = credentialEnvByRole[role];
+  const email = process.env[env.email]?.trim().toLowerCase();
+  const password = process.env[env.password] ?? "";
+
+  if (!email || !password) {
+    return null;
+  }
+
+  return { email, password, role };
+}
+
+function safeCompare(value: string, expected: string) {
+  const valueBuffer = Buffer.from(value);
+  const expectedBuffer = Buffer.from(expected);
+
+  if (valueBuffer.length !== expectedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(valueBuffer, expectedBuffer);
+}
+
+export function validateAdminCredentials({
+  email,
+  password,
+  role,
+}: {
+  email: unknown;
+  password: unknown;
+  role: AdminRole;
+}) {
+  if (typeof email !== "string" || typeof password !== "string") {
+    return null;
+  }
+
+  const account = getAdminAccount(role);
+
+  if (!account) {
+    return null;
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!safeCompare(normalizedEmail, account.email) || !safeCompare(password, account.password)) {
+    return null;
+  }
+
+  return { email: account.email, role: account.role };
+}
+
+function base64UrlEncode(value: string) {
+  return Buffer.from(value).toString("base64url");
+}
+
+function base64UrlDecode(value: string) {
+  return Buffer.from(value, "base64url").toString("utf8");
+}
+
+function signPayload(payload: string) {
+  const secret = getSessionSecret();
+
+  if (!secret) {
+    throw new Error("Missing ADMIN_SESSION_SECRET or admin credentials.");
+  }
+
+  return createHmac("sha256", secret).update(payload).digest("base64url");
+}
+
+function createSessionCookie(payload: AdminSessionPayload) {
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signature = signPayload(encodedPayload);
+
+  return `${encodedPayload}.${signature}`;
+}
+
+function parseSessionCookie(value?: string): AdminSessionPayload | null {
   if (!value) {
     return null;
   }
 
-  const [role, token] = value.split(":", 2);
+  const [encodedPayload, signature] = value.split(".", 2);
 
-  if ((role === "owner" || role === "management") && token) {
-    return { role, token } as { role: AdminRole; token: string };
+  if (!encodedPayload || !signature || signPayload(encodedPayload) !== signature) {
+    return null;
   }
 
-  return { role: "management" as AdminRole, token: value };
+  try {
+    const payload = JSON.parse(base64UrlDecode(encodedPayload)) as Partial<AdminSessionPayload>;
+    const now = Math.floor(Date.now() / 1000);
+
+    if (
+      typeof payload.email !== "string" ||
+      typeof payload.exp !== "number" ||
+      typeof payload.iat !== "number" ||
+      !isAdminRole(payload.role) ||
+      payload.exp <= now
+    ) {
+      return null;
+    }
+
+    return {
+      email: payload.email,
+      exp: payload.exp,
+      iat: payload.iat,
+      role: payload.role,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function getAdminSession() {
   const cookieStore = await cookies();
-  const session = parseAdminCookie(cookieStore.get(ADMIN_COOKIE)?.value);
+  const session = parseSessionCookie(cookieStore.get(ADMIN_COOKIE)?.value);
 
   if (!session) {
     return null;
   }
 
-  const expectedToken = getAdminTokenForRole(session.role);
-
-  if (!expectedToken || session.token !== expectedToken) {
-    return null;
-  }
-
-  return { role: session.role, label: getAdminRoleLabel(session.role) };
+  return { ...session, label: getAdminRoleLabel(session.role) };
 }
 
 export async function isAdminAuthenticated() {
@@ -71,21 +189,39 @@ export async function requireAdmin() {
   }
 }
 
-export async function setAdminSession(role: AdminRole) {
-  const token = getAdminTokenForRole(role);
+export async function requireMasterAdmin() {
+  await connection();
+  const session = await getAdminSession();
 
-  if (!token) {
-    throw new Error(`Missing access token for ${role}.`);
+  if (!session) {
+    redirect("/admin/login");
   }
 
+  if (session.role !== "master") {
+    redirect("/admin");
+  }
+}
+
+export async function setAdminSession({ email, role }: { email: string; role: AdminRole }) {
+  const now = Math.floor(Date.now() / 1000);
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE, `${role}:${token}`, {
-    httpOnly: true,
-    maxAge: 60 * 60 * 8,
-    path: "/admin",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+
+  cookieStore.set(
+    ADMIN_COOKIE,
+    createSessionCookie({
+      email,
+      exp: now + SESSION_TTL_SECONDS,
+      iat: now,
+      role,
+    }),
+    {
+      httpOnly: true,
+      maxAge: SESSION_TTL_SECONDS,
+      path: "/admin",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+  );
 }
 
 export async function clearAdminSession() {

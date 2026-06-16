@@ -42,18 +42,18 @@ export default async function AdminDashboardPage() {
           <h2 className="mt-3 text-3xl font-black leading-tight">Choose the control path for the work in front of you.</h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             <PortalCard
-              copy="Use this lane for business pulse, website traffic, incoming leads, follow-up visibility, and future company-level controls."
+              copy="Use this lane for business pulse, website traffic, incoming leads, follow-up visibility, settings, and future user controls."
               href="/admin/leads"
               icon={<BriefcaseBusiness size={28} />}
-              label="Owner"
-              title="Owner Portal"
+              label="Master"
+              title="Master Admin"
             />
             <PortalCard
               copy="Use this lane for media uploads, page placements, project stories, content updates, and the public website workflow."
               href="/admin/website"
               icon={<PanelsTopLeft size={28} />}
-              label="Management"
-              title="Management Web Control"
+              label="Website"
+              title="Web Admin"
             />
           </div>
         </div>
