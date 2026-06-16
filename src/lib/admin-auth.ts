@@ -82,26 +82,27 @@ function safeCompare(value: string, expected: string) {
 
 export function validateAdminCredentials({
   password,
-  role,
   username,
 }: {
   password: unknown;
-  role: AdminRole;
   username: unknown;
 }) {
   if (typeof username !== "string" || typeof password !== "string") {
     return null;
   }
 
-  const account = getAdminAccount(role);
+  const normalizedUsername = username.trim().toLowerCase();
+  const account = (["master", "web"] as const)
+    .map((role) => getAdminAccount(role))
+    .find((candidate) => {
+      if (!candidate) {
+        return false;
+      }
+
+      return safeCompare(normalizedUsername, candidate.username) && safeCompare(password, candidate.password);
+    });
 
   if (!account) {
-    return null;
-  }
-
-  const normalizedUsername = username.trim().toLowerCase();
-
-  if (!safeCompare(normalizedUsername, account.username) || !safeCompare(password, account.password)) {
     return null;
   }
 
