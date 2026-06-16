@@ -4,19 +4,64 @@ import { connection } from "next/server";
 
 const ADMIN_COOKIE = "grandvista_admin";
 
+export type AdminRole = "owner" | "management";
+
+const roleLabels: Record<AdminRole, string> = {
+  owner: "Owner",
+  management: "Management Web Control",
+};
+
 export function getAdminToken() {
   return process.env.ADMIN_ACCESS_TOKEN ?? "";
 }
 
-export async function isAdminAuthenticated() {
-  const token = getAdminToken();
+export function getAdminRoleLabel(role: AdminRole) {
+  return roleLabels[role];
+}
 
-  if (!token) {
-    return false;
+export function getAdminTokenForRole(role: AdminRole) {
+  const fallbackToken = getAdminToken();
+
+  if (role === "owner") {
+    return process.env.ADMIN_OWNER_ACCESS_TOKEN || fallbackToken;
   }
 
+  return process.env.ADMIN_MANAGEMENT_ACCESS_TOKEN || fallbackToken;
+}
+
+function parseAdminCookie(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const [role, token] = value.split(":", 2);
+
+  if ((role === "owner" || role === "management") && token) {
+    return { role, token } as { role: AdminRole; token: string };
+  }
+
+  return { role: "management" as AdminRole, token: value };
+}
+
+export async function getAdminSession() {
   const cookieStore = await cookies();
-  return cookieStore.get(ADMIN_COOKIE)?.value === token;
+  const session = parseAdminCookie(cookieStore.get(ADMIN_COOKIE)?.value);
+
+  if (!session) {
+    return null;
+  }
+
+  const expectedToken = getAdminTokenForRole(session.role);
+
+  if (!expectedToken || session.token !== expectedToken) {
+    return null;
+  }
+
+  return { role: session.role, label: getAdminRoleLabel(session.role) };
+}
+
+export async function isAdminAuthenticated() {
+  return Boolean(await getAdminSession());
 }
 
 export async function requireAdmin() {
@@ -26,15 +71,15 @@ export async function requireAdmin() {
   }
 }
 
-export async function setAdminSession() {
-  const token = getAdminToken();
+export async function setAdminSession(role: AdminRole) {
+  const token = getAdminTokenForRole(role);
 
   if (!token) {
-    throw new Error("Missing ADMIN_ACCESS_TOKEN.");
+    throw new Error(`Missing access token for ${role}.`);
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_COOKIE, token, {
+  cookieStore.set(ADMIN_COOKIE, `${role}:${token}`, {
     httpOnly: true,
     maxAge: 60 * 60 * 8,
     path: "/admin",

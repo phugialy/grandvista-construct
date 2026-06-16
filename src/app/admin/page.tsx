@@ -1,12 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BarChart3, Bot, ImageIcon, Inbox, Layers, PanelsTopLeft, PenLine, Settings, TrendingUp } from "lucide-react";
-import { requireAdmin } from "@/lib/admin-auth";
+import { BarChart3, Bot, BriefcaseBusiness, ImageIcon, Inbox, Layers, PanelsTopLeft, PenLine, Settings, TrendingUp } from "lucide-react";
+import { getAdminSession, requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { AdminNav } from "@/components/admin/admin-nav";
 
 export default async function AdminDashboardPage() {
   await requireAdmin();
+  const session = await getAdminSession();
 
   const supabase = getSupabaseServiceClient();
   const now = new Date();
@@ -34,6 +35,29 @@ export default async function AdminDashboardPage() {
       />
 
       <section className="section-shell py-10">
+        <div className="mb-8 border border-ink/12 bg-white p-6">
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+            Current lane: {session?.label ?? "Internal Control"}
+          </p>
+          <h2 className="mt-3 text-3xl font-black leading-tight">Choose the control path for the work in front of you.</h2>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <PortalCard
+              copy="Use this lane for business pulse, website traffic, incoming leads, follow-up visibility, and future company-level controls."
+              href="/admin/leads"
+              icon={<BriefcaseBusiness size={28} />}
+              label="Owner"
+              title="Owner Portal"
+            />
+            <PortalCard
+              copy="Use this lane for media uploads, page placements, project stories, content updates, and the public website workflow."
+              href="/admin/website"
+              icon={<PanelsTopLeft size={28} />}
+              label="Management"
+              title="Management Web Control"
+            />
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-4">
           <Metric label="Visits this week" note={`${traffic.growthLabel} vs last week`} value={traffic.thisWeekViews} />
           <Metric label="Unique visitors" note={`${traffic.revisitRate}% revisit rate`} value={traffic.uniqueVisitors} />
@@ -119,6 +143,31 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+function PortalCard({
+  copy,
+  href,
+  icon,
+  label,
+  title,
+}: {
+  copy: string;
+  href: string;
+  icon: ReactNode;
+  label: string;
+  title: string;
+}) {
+  return (
+    <Link className="group border border-ink/12 bg-warm-white p-6 transition hover:border-brand-red hover:bg-white" href={href}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-brand-red">{icon}</div>
+        <span className="text-xs font-black uppercase tracking-[0.14em] text-navy">{label}</span>
+      </div>
+      <h3 className="mt-5 text-3xl font-black leading-tight group-hover:text-navy">{title}</h3>
+      <p className="mt-3 max-w-xl text-sm font-bold leading-6 text-steel">{copy}</p>
+    </Link>
   );
 }
 

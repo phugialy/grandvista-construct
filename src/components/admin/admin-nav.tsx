@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { logoutAdmin } from "@/app/admin/leads/actions";
+import { getAdminSession } from "@/lib/admin-auth";
 
-export function AdminNav({ title, description }: { title: string; description: string }) {
+export async function AdminNav({ title, description }: { title: string; description: string }) {
+  const session = await getAdminSession();
+
   return (
     <section className="border-b border-ink/10 bg-ink text-white">
       <div className="section-shell flex flex-col justify-between gap-6 py-10 md:flex-row md:items-end">
         <div>
-          <p className="eyebrow">Grandvista Admin</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="eyebrow">Grandvista Admin</p>
+            {session ? (
+              <span className="border border-white/18 px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/72">
+                {session.label}
+              </span>
+            ) : null}
+          </div>
           <h1 className="mt-3 text-4xl font-black leading-tight">{title}</h1>
           <p className="mt-3 text-white/66">{description}</p>
           <nav className="mt-6 flex flex-wrap gap-3 text-sm font-black uppercase tracking-[0.08em]">

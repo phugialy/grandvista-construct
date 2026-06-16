@@ -3,9 +3,10 @@ import { loginAdmin } from "./actions";
 export default async function AdminLoginPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ status?: string }>;
+  searchParams?: Promise<{ status?: string; role?: string }>;
 }) {
-  const { status } = searchParams ? await searchParams : {};
+  const { status, role } = searchParams ? await searchParams : {};
+  const selectedRole = role === "owner" ? "owner" : "management";
 
   return (
     <main className="min-h-screen bg-ink text-white">
@@ -16,11 +17,11 @@ export default async function AdminLoginPage({
             Lead dashboard access for project conversations.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/68">
-            The admin area is intentionally practical: review inquiries, understand project context,
-            and track follow-up status without distracting from the work.
+            Choose the internal lane first. Owner access focuses on business pulse and inquiries;
+            management web control focuses on media, project stories, and website updates.
           </p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            {["Review", "Qualify", "Follow up"].map((item) => (
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            {["Owner", "Management Web Control"].map((item) => (
               <div key={item} className="border border-white/14 p-4 text-sm font-black uppercase tracking-[0.08em]">
                 {item}
               </div>
@@ -30,11 +31,13 @@ export default async function AdminLoginPage({
 
         <form action={loginAdmin} className="w-full border border-white/14 bg-white p-8 text-ink">
           <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">Secure Access</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight">Open the dashboard</h2>
-          <p className="mt-4 leading-7 text-steel">Enter the admin access token to review project inquiries.</p>
+          <h2 className="mt-4 text-4xl font-black leading-tight">Open an internal portal</h2>
+          <p className="mt-4 leading-7 text-steel">
+            Enter the access token, then choose the lane you need for this session.
+          </p>
           {status === "invalid" ? (
             <p className="mt-6 border border-brand-red/30 bg-brand-red/8 p-4 text-sm font-bold text-brand-red">
-              The access token did not match.
+              The access token did not match {selectedRole === "owner" ? "owner" : "management"} access.
             </p>
           ) : null}
           <input
@@ -44,12 +47,36 @@ export default async function AdminLoginPage({
             required
             type="password"
           />
-          <button
-            className="mt-4 w-full bg-navy px-6 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
-            type="submit"
-          >
-            Open Dashboard
-          </button>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <button
+              className="border border-ink/12 bg-warm-white p-5 text-left transition hover:border-brand-red hover:bg-white"
+              name="admin_role"
+              type="submit"
+              value="owner"
+            >
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">
+                Owner
+              </span>
+              <span className="mt-3 block text-2xl font-black leading-tight">Business Pulse</span>
+              <span className="mt-3 block text-sm font-bold leading-6 text-steel">
+                Leads, metrics, follow-up visibility, and company-level controls.
+              </span>
+            </button>
+            <button
+              className="border border-ink/12 bg-navy p-5 text-left text-white transition hover:border-brand-red hover:bg-brand-red"
+              name="admin_role"
+              type="submit"
+              value="management"
+            >
+              <span className="text-xs font-black uppercase tracking-[0.14em] text-white/70">
+                Management
+              </span>
+              <span className="mt-3 block text-2xl font-black leading-tight">Web Control</span>
+              <span className="mt-3 block text-sm font-bold leading-6 text-white/70">
+                Media, page placements, project stories, and content publishing.
+              </span>
+            </button>
+          </div>
         </form>
       </section>
     </main>
