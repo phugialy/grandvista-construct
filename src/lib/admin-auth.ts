@@ -1,8 +1,8 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac } from "crypto";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { verifyAdminPassword } from "./admin-password";
 import { getSupabaseServiceClient } from "./supabase/server";
 
 const ADMIN_COOKIE = "grandvista_admin";
@@ -11,6 +11,7 @@ const SESSION_TTL_SECONDS = 60 * 60 * 8;
 export type AdminRole = "master" | "web";
 
 type AdminSessionPayload = {
+  email: string;
   exp: number;
   iat: number;
   role: AdminRole;
@@ -19,10 +20,9 @@ type AdminSessionPayload = {
 
 type AdminAccount = {
   active: boolean;
-  password_hash: string;
-  password_salt: string;
+  auth_user_id: string;
+  email: string;
   role: AdminRole;
-  username: string;
 };
 
 const roleLabels: Record<AdminRole, string> = {
@@ -42,26 +42,31 @@ function getSessionSecret() {
   return process.env.ADMIN_SESSION_SECRET || "";
 }
 
-function safeCompare(value: string, expected: string) {
-  const valueBuffer = Buffer.from(value);
-  const expectedBuffer = Buffer.from(expected);
+function getSupabasePasswordAuthClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (valueBuffer.length !== expectedBuffer.length) {
-    return false;
+  if (!url || !key) {
+    throw new Error("Missing Supabase auth environment variables.");
   }
 
-  return timingSafeEqual(valueBuffer, expectedBuffer);
+  return createClient(url, key, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
 
-async function getAdminAccount(username: string): Promise<AdminAccount | null> {
+async function getAdminAccount(authUserId: string): Promise<AdminAccount | null> {
   const supabase = getSupabaseServiceClient();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
 
   const { data, error } = await supabase
-    .from("admin_users")
-    .select("username,role,password_hash,password_salt,active")
-    .eq("username", username)
+    .from("admin_profiles")
+    .select("auth_user_id,email,role,active")
+    .eq("auth_user_id", authUserId)
     .eq("active", true)
     .abortSignal(controller.signal)
     .maybeSingle();
@@ -81,35 +86,51 @@ async function getAdminAccount(username: string): Promise<AdminAccount | null> {
 }
 
 export async function validateAdminCredentials({
+  email,
   password,
   username,
 }: {
+  email?: unknown;
   password: unknown;
-  username: unknown;
+  username?: unknown;
 }) {
-  if (typeof username !== "string" || typeof password !== "string") {
+  const submittedEmail = typeof email === "string" ? email : username;
+
+  if (typeof submittedEmail !== "string" || typeof password !== "string") {
     return null;
   }
 
-  const normalizedUsername = username.trim().toLowerCase();
-  const account = await getAdminAccount(normalizedUsername);
+  const normalizedEmail = submittedEmail.trim().toLowerCase();
+
+  if (!normalizedEmail || !password) {
+    return null;
+  }
+
+  const authClient = getSupabasePasswordAuthClient();
+  const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
+    email: normalizedEmail,
+    password,
+  });
+
+  if (authError || !authData.user) {
+    if (authError) {
+      console.error("Supabase admin auth failed", authError.message);
+    }
+    return null;
+  }
+
+  const account = await getAdminAccount(authData.user.id);
+  await authClient.auth.signOut({ scope: "local" });
 
   if (!account) {
     return null;
   }
 
-  if (
-    !safeCompare(normalizedUsername, account.username) ||
-    !verifyAdminPassword({
-      password,
-      passwordHash: account.password_hash,
-      passwordSalt: account.password_salt,
-    })
-  ) {
+  if (account.email.toLowerCase() !== normalizedEmail) {
     return null;
   }
 
-  return { role: account.role, username: account.username };
+  return { email: account.email, role: account.role, username: account.email };
 }
 
 function base64UrlEncode(value: string) {
@@ -155,6 +176,7 @@ function parseSessionCookie(value?: string): AdminSessionPayload | null {
     if (
       typeof payload.exp !== "number" ||
       typeof payload.iat !== "number" ||
+      typeof payload.email !== "string" ||
       !isAdminRole(payload.role) ||
       typeof payload.username !== "string" ||
       payload.exp <= now
@@ -163,6 +185,7 @@ function parseSessionCookie(value?: string): AdminSessionPayload | null {
     }
 
     return {
+      email: payload.email,
       exp: payload.exp,
       iat: payload.iat,
       role: payload.role,
@@ -208,7 +231,7 @@ export async function requireMasterAdmin() {
   }
 }
 
-export async function setAdminSession({ role, username }: { role: AdminRole; username: string }) {
+export async function setAdminSession({ email, role, username }: { email: string; role: AdminRole; username: string }) {
   const now = Math.floor(Date.now() / 1000);
   const cookieStore = await cookies();
 
@@ -216,6 +239,7 @@ export async function setAdminSession({ role, username }: { role: AdminRole; use
     ADMIN_COOKIE,
     createSessionCookie({
       exp: now + SESSION_TTL_SECONDS,
+      email,
       iat: now,
       role,
       username,

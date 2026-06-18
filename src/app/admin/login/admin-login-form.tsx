@@ -10,11 +10,11 @@ export function AdminLoginForm({
       <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">Secure Access</p>
       <h2 className="mt-4 text-4xl font-black leading-tight">Sign in to the control hub</h2>
       <p className="mt-4 leading-7 text-steel">
-        Use the username and password assigned to the team member. The system will open the right workspace for that account.
+        Use the email and password assigned to the team member. The system will open the right workspace for that account.
       </p>
       {status === "invalid" ? (
         <p className="mt-6 border border-brand-red/30 bg-brand-red/8 p-4 text-sm font-bold text-brand-red">
-          The username or password did not match an active admin account.
+          The email or password did not match an active admin account.
         </p>
       ) : null}
       {status === "error" ? (
@@ -24,11 +24,11 @@ export function AdminLoginForm({
       ) : null}
       <input
         className="mt-8 w-full border border-ink/14 p-4 outline-none focus:border-navy"
-        autoComplete="username"
-        name="username"
-        placeholder="Username"
+        autoComplete="email"
+        name="email"
+        placeholder="Email"
         required
-        type="text"
+        type="email"
       />
       <div className="mt-3 flex border border-ink/14 focus-within:border-navy">
         <input

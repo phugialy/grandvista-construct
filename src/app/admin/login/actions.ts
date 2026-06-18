@@ -8,8 +8,8 @@ export async function loginAdmin(formData: FormData) {
 
   try {
     session = await validateAdminCredentials({
+      email: formData.get("email"),
       password: formData.get("password"),
-      username: formData.get("username"),
     });
   } catch (error) {
     console.error("Admin login failed", error);
