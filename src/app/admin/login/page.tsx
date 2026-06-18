@@ -1,4 +1,5 @@
 import { loginAdmin } from "./actions";
+import { AdminLoginForm } from "./admin-login-form";
 
 export default async function AdminLoginPage({
   searchParams,
@@ -16,66 +17,12 @@ export default async function AdminLoginPage({
             Internal access for the people managing Grandvista online.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/68">
-            Sign in with a named internal account. The portal recognizes whether the user is
-            master admin or web admin from the credentials.
+            Sign in with a named internal account. The portal recognizes the role behind the
+            account and opens the right workspace automatically.
           </p>
-          <div className="mt-8 grid gap-3 sm:grid-cols-2">
-            {["Master Admin", "Web Admin"].map((item) => (
-              <div key={item} className="border border-white/14 p-4 text-sm font-black uppercase tracking-[0.08em]">
-                {item}
-              </div>
-            ))}
-          </div>
         </div>
 
-        <form action={loginAdmin} className="w-full border border-white/14 bg-white p-8 text-ink">
-          <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">Secure Access</p>
-          <h2 className="mt-4 text-4xl font-black leading-tight">Sign in to an internal portal</h2>
-          <p className="mt-4 leading-7 text-steel">
-            Use the username and password assigned to the team member. Registration stays closed unless a master admin creates the access.
-          </p>
-          {status === "invalid" ? (
-            <p className="mt-6 border border-brand-red/30 bg-brand-red/8 p-4 text-sm font-bold text-brand-red">
-              The username or password did not match an active admin account.
-            </p>
-          ) : null}
-          <input
-            className="mt-8 w-full border border-ink/14 p-4 outline-none focus:border-navy"
-            autoComplete="username"
-            name="username"
-            placeholder="Username"
-            required
-            type="text"
-          />
-          <input
-            className="mt-3 w-full border border-ink/14 p-4 outline-none focus:border-navy"
-            autoComplete="current-password"
-            name="password"
-            placeholder="Password"
-            required
-            type="password"
-          />
-          <button
-            className="mt-5 w-full bg-navy px-6 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red"
-            type="submit"
-          >
-            Sign In
-          </button>
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
-            <div className="border border-ink/12 bg-warm-white p-5">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">Master Admin</p>
-              <p className="mt-3 text-sm font-bold leading-6 text-steel">
-                Owner-level access for leads, metrics, settings, and future user controls.
-              </p>
-            </div>
-            <div className="border border-ink/12 bg-warm-white p-5">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-navy">Web Admin</p>
-              <p className="mt-3 text-sm font-bold leading-6 text-steel">
-                Media, page placements, project stories, and content publishing.
-              </p>
-            </div>
-          </div>
-        </form>
+        <AdminLoginForm action={loginAdmin} status={status} />
       </section>
     </main>
   );

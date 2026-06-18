@@ -55,12 +55,18 @@ function safeCompare(value: string, expected: string) {
 
 async function getAdminAccount(username: string): Promise<AdminAccount | null> {
   const supabase = getSupabaseServiceClient();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
   const { data, error } = await supabase
     .from("admin_users")
     .select("username,role,password_hash,password_salt,active")
     .eq("username", username)
     .eq("active", true)
+    .abortSignal(controller.signal)
     .maybeSingle();
+
+  clearTimeout(timeout);
 
   if (error) {
     console.error("Failed to load admin user", error);
