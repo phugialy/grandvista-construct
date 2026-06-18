@@ -39,7 +39,7 @@ export function isAdminRole(value: unknown): value is AdminRole {
 }
 
 function getSessionSecret() {
-  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_ACCESS_TOKEN || "";
+  return process.env.ADMIN_SESSION_SECRET || "";
 }
 
 function safeCompare(value: string, expected: string) {
@@ -118,7 +118,7 @@ function signPayload(payload: string) {
   const secret = getSessionSecret();
 
   if (!secret) {
-    throw new Error("Missing ADMIN_SESSION_SECRET or admin credentials.");
+    throw new Error("Missing ADMIN_SESSION_SECRET.");
   }
 
   return createHmac("sha256", secret).update(payload).digest("base64url");
