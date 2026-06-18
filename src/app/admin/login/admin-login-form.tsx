@@ -59,6 +59,9 @@ export function AdminLoginForm({
       <p className="mt-5 text-sm font-bold leading-6 text-steel">
         Access is invite-only. Account role and permissions are managed in the database, not selected on this screen.
       </p>
+      <p className="mt-3 text-xs font-black uppercase tracking-[0.1em] text-navy">
+        Need access restored? Ask a master admin to reset the account password.
+      </p>
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -85,6 +88,11 @@ export function AdminLoginForm({
     submit.textContent = "Signing In...";
   };
 
+  const resetPending = () => {
+    submit.disabled = false;
+    submit.textContent = "Sign In";
+  };
+
   const submitForm = () => {
     if (!form.reportValidity()) return;
 
@@ -92,6 +100,9 @@ export function AdminLoginForm({
     window.setTimeout(() => HTMLFormElement.prototype.submit.call(form), 80);
   };
 
+  resetPending();
+  window.addEventListener("pageshow", resetPending);
+  form.addEventListener("input", resetPending);
   submit.addEventListener("click", submitForm);
   form.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
