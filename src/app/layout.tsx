@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anton, Archivo, Geist_Mono } from "next/font/google";
+import { SupabaseRecoveryRedirect } from "@/components/admin/supabase-recovery-redirect";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -69,7 +70,10 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${anton.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SupabaseRecoveryRedirect />
+        {children}
+      </body>
     </html>
   );
 }
