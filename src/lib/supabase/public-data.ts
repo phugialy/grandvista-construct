@@ -75,6 +75,33 @@ export type SiteSectionMediaAsset = {
   caption: string | null;
 };
 
+export type BlogIntegrationSettings = {
+  id: string;
+  provider: string;
+  enabled: boolean;
+  default_status: "draft" | "published";
+  posts_per_page: number;
+  featured_post_id: string | null;
+  last_sync_status: string | null;
+  last_sync_at: string | null;
+};
+
+export type PublishedBlogPost = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  body: string | null;
+  hero_image_url: string | null;
+  hero_image_alt: string | null;
+  tags: string[] | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  featured: boolean;
+  published_at: string | null;
+  updated_at: string | null;
+};
+
 export function getSectionPrimaryMedia(section?: SiteSection) {
   if (!section || section.content_source === "fallback") {
     return null;
@@ -201,6 +228,72 @@ export async function getSiteSections(): Promise<Record<string, SiteSection>> {
   }));
 
   return Object.fromEntries(sections.map((section) => [section.section_key, section]));
+}
+
+export async function getBlogSettings(): Promise<BlogIntegrationSettings | null> {
+  "use cache";
+  cacheTag("blog-settings");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("blog_integration_settings")
+    .select("id,provider,enabled,default_status,posts_per_page,featured_post_id,last_sync_status,last_sync_at")
+    .eq("provider", "soro")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load blog settings", error);
+    return null;
+  }
+
+  return data as BlogIntegrationSettings | null;
+}
+
+export async function getPublishedBlogPosts(): Promise<PublishedBlogPost[]> {
+  "use cache";
+  cacheTag("published-blog-posts");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select(
+      "id,title,slug,excerpt,body,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
+    )
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to load published blog posts", error);
+    return [];
+  }
+
+  return (data ?? []) as PublishedBlogPost[];
+}
+
+export async function getPublishedBlogPostBySlug(slug: string): Promise<PublishedBlogPost | null> {
+  "use cache";
+  cacheTag(`blog-post-${slug}`);
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select(
+      "id,title,slug,excerpt,body,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
+    )
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load blog post", error);
+    return null;
+  }
+
+  return data as PublishedBlogPost | null;
 }
 
 async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
