@@ -8,6 +8,14 @@ import { deleteBlogPost, updateBlogIntegration, updateBlogPost } from "./actions
 type BlogSettings = {
   id: string;
   provider: string;
+  provider_display_name: string | null;
+  provider_account_email: string | null;
+  provider_install_status: "not_started" | "waiting_on_provider" | "testing" | "active" | "paused" | null;
+  provider_install_notes: string | null;
+  outbound_api_base_url: string | null;
+  outbound_api_key_hash: string | null;
+  outbound_api_key_last4: string | null;
+  webhook_payload_notes: string | null;
   enabled: boolean;
   webhook_secret_hash: string | null;
   default_status: "draft" | "published";
@@ -68,7 +76,7 @@ export default async function AdminBlogWidgetsPage({
   const [{ data: settings }, { data: posts }, { data: events }] = await Promise.all([
     supabase
       .from("blog_integration_settings")
-      .select("id,provider,enabled,webhook_secret_hash,default_status,posts_per_page,last_sync_status,last_sync_at")
+      .select("*")
       .eq("provider", "soro")
       .maybeSingle(),
     supabase
@@ -87,7 +95,9 @@ export default async function AdminBlogWidgetsPage({
   const blogSettings = settings as BlogSettings | null;
   const blogPosts = (posts ?? []) as AdminBlogPost[];
   const webhookEvents = (events ?? []) as WebhookEvent[];
-  const webhookUrl = "https://grandvista-construction.com/api/integrations/soro/articles";
+  const providerName = blogSettings?.provider_display_name ?? "Sora AI";
+  const webhookUrl = "https://grandvista-construction.com/api/integrations/sora/articles";
+  const legacyWebhookUrl = "https://grandvista-construction.com/api/integrations/soro/articles";
   const previewUrl = "https://grandvista-construction.com/blog-widgets";
 
   return (
@@ -118,7 +128,7 @@ export default async function AdminBlogWidgetsPage({
                 Provider setup
               </p>
             </div>
-            <h2 className="mt-3 text-3xl font-black leading-tight">Soro article intake</h2>
+            <h2 className="mt-3 text-3xl font-black leading-tight">{providerName} article intake</h2>
             <p className="mt-4 leading-7 text-steel">
               Turn on the widget when the content provider is ready. Incoming articles should land
               as drafts unless the team intentionally changes the default.
@@ -126,6 +136,49 @@ export default async function AdminBlogWidgetsPage({
 
             <form action={updateBlogIntegration} className="mt-6 grid gap-4">
               <input name="setting_id" type="hidden" value={blogSettings?.id ?? ""} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                    Provider display name
+                  </span>
+                  <input
+                    className={inputClass}
+                    defaultValue={providerName}
+                    name="provider_display_name"
+                    placeholder="Sora AI"
+                  />
+                </label>
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                    Provider account email
+                  </span>
+                  <input
+                    className={inputClass}
+                    defaultValue={blogSettings?.provider_account_email ?? ""}
+                    name="provider_account_email"
+                    placeholder="account@sora-provider.com"
+                    type="email"
+                  />
+                </label>
+              </div>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Install status
+                </span>
+                <select
+                  className={inputClass}
+                  defaultValue={blogSettings?.provider_install_status ?? "not_started"}
+                  name="provider_install_status"
+                >
+                  <option value="not_started">Not started</option>
+                  <option value="waiting_on_provider">Waiting on provider</option>
+                  <option value="testing">Testing</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                </select>
+              </label>
+
               <label className="flex items-start gap-3 border border-ink/10 bg-warm-white p-4">
                 <input
                   className="mt-1 h-5 w-5"
@@ -138,7 +191,8 @@ export default async function AdminBlogWidgetsPage({
                     Enable blog widget
                   </span>
                   <span className="mt-1 block text-sm leading-6 text-steel">
-                    Allows the public Insights page and the Soro webhook workflow to operate.
+                    Allows the hidden preview page, future Insights page, and provider webhook
+                    workflow to operate.
                   </span>
                 </span>
               </label>
@@ -179,6 +233,62 @@ export default async function AdminBlogWidgetsPage({
                 />
               </label>
 
+              <label className="grid gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Provider outbound API URL
+                </span>
+                <input
+                  className={inputClass}
+                  defaultValue={blogSettings?.outbound_api_base_url ?? ""}
+                  name="outbound_api_base_url"
+                  placeholder="Optional URL if Sora asks Grandvista to call their API"
+                  type="url"
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Provider outbound API key
+                </span>
+                <input
+                  className={inputClass}
+                  name="outbound_api_key"
+                  placeholder={
+                    blogSettings?.outbound_api_key_last4
+                      ? `Key fingerprint saved. Last 4: ${blogSettings.outbound_api_key_last4}`
+                      : "Optional. Store only when Sora requires server-to-server calls."
+                  }
+                  type="password"
+                />
+                <span className="text-xs leading-5 text-steel">
+                  For now this is stored as a hash/fingerprint, not a raw reusable secret.
+                </span>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Install notes
+                </span>
+                <textarea
+                  className={`${inputClass} min-h-28`}
+                  defaultValue={blogSettings?.provider_install_notes ?? ""}
+                  name="provider_install_notes"
+                  placeholder="Account owner, install steps, Sora dashboard notes, or questions to confirm."
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Payload mapping notes
+                </span>
+                <textarea
+                  className={`${inputClass} min-h-24`}
+                  defaultValue={blogSettings?.webhook_payload_notes ?? ""}
+                  name="webhook_payload_notes"
+                  placeholder="Provider-specific payload notes, fields they plan to send, or mapping changes we may need."
+                />
+              </label>
+
               <button className="bg-navy px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red">
                 Save Blog Widget
               </button>
@@ -209,7 +319,8 @@ export default async function AdminBlogWidgetsPage({
               <p className="mt-3 text-sm leading-6 text-steel">
                 Ask the provider to send the shared secret as a Bearer token,{" "}
                 <code className="bg-white px-1">x-grandvista-blog-secret</code>, or{" "}
-                <code className="bg-white px-1">x-soro-secret</code>.
+                <code className="bg-white px-1">x-sora-secret</code>. The legacy endpoint{" "}
+                <code className="bg-white px-1 break-all">{legacyWebhookUrl}</code> also works.
               </p>
             </div>
 

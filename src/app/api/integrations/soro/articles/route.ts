@@ -43,6 +43,7 @@ function getProvidedSecret(request: Request) {
 
   return (
     request.headers.get("x-grandvista-blog-secret") ??
+    request.headers.get("x-sora-secret") ??
     request.headers.get("x-soro-secret") ??
     request.headers.get("x-webhook-secret") ??
     ""
@@ -238,7 +239,7 @@ export async function POST(request: Request) {
       status,
     });
   } catch (error) {
-    console.error("Soro article webhook failed", error);
+    console.error("Article webhook failed", error);
     await logWebhookEvent({
       externalId,
       message: error instanceof Error ? error.message : "Unknown webhook error.",

@@ -18,6 +18,20 @@ function nullableString(formData: FormData, key: string) {
   return value.length > 0 ? value : null;
 }
 
+function normalizeInstallStatus(value: string) {
+  if (
+    value === "not_started" ||
+    value === "waiting_on_provider" ||
+    value === "testing" ||
+    value === "active" ||
+    value === "paused"
+  ) {
+    return value;
+  }
+
+  return "not_started";
+}
+
 function revalidateBlog() {
   revalidateTag("blog-settings", "default");
   revalidateTag("published-blog-posts", "default");
@@ -33,15 +47,27 @@ export async function updateBlogIntegration(formData: FormData) {
   const defaultStatus = getString(formData, "default_status");
   const postsPerPage = Number.parseInt(getString(formData, "posts_per_page"), 10);
   const webhookSecret = getString(formData, "webhook_secret");
+  const outboundApiKey = getString(formData, "outbound_api_key");
   const payload: Record<string, unknown> = {
     enabled: formData.get("enabled") === "on",
     default_status: defaultStatus === "published" ? "published" : "draft",
+    outbound_api_base_url: nullableString(formData, "outbound_api_base_url"),
     posts_per_page: Number.isFinite(postsPerPage) ? Math.min(Math.max(postsPerPage, 3), 24) : 9,
+    provider_account_email: nullableString(formData, "provider_account_email"),
+    provider_display_name: getString(formData, "provider_display_name") || "Sora AI",
+    provider_install_notes: nullableString(formData, "provider_install_notes"),
+    provider_install_status: normalizeInstallStatus(getString(formData, "provider_install_status")),
     updated_at: new Date().toISOString(),
+    webhook_payload_notes: nullableString(formData, "webhook_payload_notes"),
   };
 
   if (webhookSecret) {
     payload.webhook_secret_hash = hashSecret(webhookSecret);
+  }
+
+  if (outboundApiKey) {
+    payload.outbound_api_key_hash = hashSecret(outboundApiKey);
+    payload.outbound_api_key_last4 = outboundApiKey.slice(-4);
   }
 
   const supabase = getSupabaseServiceClient();
