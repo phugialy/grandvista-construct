@@ -1,9 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, FileText } from "lucide-react";
-import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { PageHero } from "@/components/marketing/page-hero";
 import { SoroBlogEmbed } from "@/components/marketing/soro-blog-embed";
 import type { BlogIntegrationSettings, PublishedBlogPost } from "@/lib/supabase/public-data";
 
@@ -17,10 +15,10 @@ type BlogWidgetPageProps = {
 
 export function BlogWidgetPage({
   copy = "Notes on planning, project readiness, field coordination, and the decisions that help commercial spaces move from idea to usable built environment.",
-  eyebrow = "Insights",
+  eyebrow = "Article Space",
   posts,
   settings,
-  title = "Construction thinking for business spaces.",
+  title = "Construction thinking for business spaces",
 }: BlogWidgetPageProps) {
   const enabled = Boolean(settings?.enabled);
   const embedContainerId = settings?.embed_container_id?.trim() || "soro-blog";
@@ -29,50 +27,30 @@ export function BlogWidgetPage({
 
   return (
     <MarketingShell>
-      <PageHero
-        eyebrow={eyebrow}
-        title={title}
-        copy={copy}
-        primaryHref="/start-a-project"
-        primaryLabel="Start a Project Conversation"
-        secondaryHref="/project-stories"
-        secondaryLabel="See Project Stories"
-        stats={[
-          { label: "Focus", value: "Useful project context" },
-          { label: "Format", value: "Brief notes over noise" },
-        ]}
-      />
-
-      <section className="section-shell py-20">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div>
-            <p className="eyebrow">Article Space</p>
-            <h2 className="gv-display mt-4 max-w-4xl text-6xl leading-[0.92] text-navy sm:text-7xl">
-              Built to support
-              <br />
-              better first calls
-            </h2>
-            <p className="mt-5 max-w-2xl leading-7 text-steel">
-              This page is ready to receive approved articles from the admin blog widget workflow.
-              The best posts should help owners, operators, architects, and project teams
-              understand what matters before work is already moving.
-            </p>
+      <section className="section-shell py-14 sm:py-16">
+        <div className="grid gap-8 lg:grid-cols-[0.86fr_0.44fr] lg:items-end">
+          <div className="max-w-4xl">
+            <p className="eyebrow">{eyebrow}</p>
+            <h1 className="gv-display mt-4 max-w-4xl text-5xl leading-[0.92] text-navy sm:text-6xl lg:text-7xl">
+              {title}
+            </h1>
+            <p className="mt-5 max-w-3xl text-base leading-8 text-steel sm:text-lg">{copy}</p>
           </div>
           <Link
             href="/start-a-project"
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red hover:text-navy"
+            className="inline-flex w-fit items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red hover:text-navy lg:justify-self-end"
           >
             Talk through a project <ArrowUpRight size={16} />
           </Link>
         </div>
 
         {showEmbed ? (
-          <div className="mt-12 border border-ink/12 bg-white p-6">
+          <div className="grandvista-soro-frame mt-12 border border-ink/12 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
             <SoroBlogEmbed containerId={embedContainerId} scriptUrl={embedScriptUrl} />
           </div>
         ) : null}
 
-        {posts.length > 0 ? (
+        {!showEmbed && posts.length > 0 ? (
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
             {posts.map((post) => (
               <article
@@ -115,7 +93,9 @@ export function BlogWidgetPage({
               </article>
             ))}
           </div>
-        ) : (
+        ) : null}
+
+        {!showEmbed && posts.length === 0 ? (
           <div className="mt-12 border border-ink/12 bg-white p-8">
             <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">
               {enabled ? "Ready for posts" : "Blog widget disabled"}
@@ -128,17 +108,8 @@ export function BlogWidgetPage({
               review, publish, hide, or feature posts before they become public.
             </p>
           </div>
-        )}
+        ) : null}
       </section>
-
-      <FinalCta
-        title="Have a project question behind the article?"
-        copy="Use the project intake to share the context, stage, timeline, and practical decision you are trying to make next."
-        primaryHref="/start-a-project"
-        primaryLabel="Start a Project Conversation"
-        secondaryHref="/how-we-work"
-        secondaryLabel="See How We Work"
-      />
     </MarketingShell>
   );
 }
