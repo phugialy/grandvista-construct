@@ -12,7 +12,6 @@ const staticRoutes: Array<{
   { path: "/what-we-build", priority: 0.85, changeFrequency: "monthly" },
   { path: "/how-we-work", priority: 0.85, changeFrequency: "monthly" },
   { path: "/project-stories", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/insights", priority: 0.7, changeFrequency: "weekly" },
   { path: "/our-direction", priority: 0.75, changeFrequency: "monthly" },
   { path: "/company", priority: 0.75, changeFrequency: "monthly" },
   { path: "/start-a-project", priority: 0.9, changeFrequency: "monthly" },

@@ -222,6 +222,7 @@ export async function POST(request: Request) {
     });
 
     revalidateTag("published-blog-posts", "default");
+    revalidatePath("/blog-widgets");
     revalidatePath("/insights");
     revalidatePath("/admin/blog-widgets");
 

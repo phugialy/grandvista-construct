@@ -88,6 +88,7 @@ export default async function AdminBlogWidgetsPage({
   const blogPosts = (posts ?? []) as AdminBlogPost[];
   const webhookEvents = (events ?? []) as WebhookEvent[];
   const webhookUrl = "https://grandvista-construction.com/api/integrations/soro/articles";
+  const previewUrl = "https://grandvista-construction.com/blog-widgets";
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
@@ -185,6 +186,22 @@ export default async function AdminBlogWidgetsPage({
 
             <div className="mt-6 border border-ink/10 bg-warm-white p-5">
               <div className="flex items-center gap-2">
+                <Eye className="text-brand-red" size={18} />
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Hidden preview page
+                </p>
+              </div>
+              <p className="mt-3 break-all font-mono text-sm text-ink">{previewUrl}</p>
+              <Link
+                className="mt-4 inline-flex items-center gap-2 border border-ink/12 px-4 py-3 text-xs font-black uppercase tracking-[0.08em] hover:border-brand-red hover:text-brand-red"
+                href="/blog-widgets"
+              >
+                Open Preview <Eye size={14} />
+              </Link>
+            </div>
+
+            <div className="mt-4 border border-ink/10 bg-warm-white p-5">
+              <div className="flex items-center gap-2">
                 <KeyRound className="text-brand-red" size={18} />
                 <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">Webhook URL</p>
               </div>
@@ -193,6 +210,26 @@ export default async function AdminBlogWidgetsPage({
                 Ask the provider to send the shared secret as a Bearer token,{" "}
                 <code className="bg-white px-1">x-grandvista-blog-secret</code>, or{" "}
                 <code className="bg-white px-1">x-soro-secret</code>.
+              </p>
+            </div>
+
+            <div className="mt-4 border border-ink/10 bg-warm-white p-5">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                Accepted article fields
+              </p>
+              <p className="mt-3 text-sm leading-6 text-steel">
+                Minimum: <code className="bg-white px-1">title</code>. Optional:{" "}
+                <code className="bg-white px-1">slug</code>,{" "}
+                <code className="bg-white px-1">excerpt</code>,{" "}
+                <code className="bg-white px-1">body</code>,{" "}
+                <code className="bg-white px-1">hero_image_url</code>,{" "}
+                <code className="bg-white px-1">tags</code>,{" "}
+                <code className="bg-white px-1">seo_title</code>, and{" "}
+                <code className="bg-white px-1">seo_description</code>.
+              </p>
+              <p className="mt-3 text-sm leading-6 text-steel">
+                Incoming posts are stored in the database, then edited and published from this
+                control hub. The website stays a delivery surface, not a media storage room.
               </p>
             </div>
           </section>

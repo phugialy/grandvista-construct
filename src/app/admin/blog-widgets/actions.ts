@@ -21,6 +21,7 @@ function nullableString(formData: FormData, key: string) {
 function revalidateBlog() {
   revalidateTag("blog-settings", "default");
   revalidateTag("published-blog-posts", "default");
+  revalidatePath("/blog-widgets");
   revalidatePath("/insights");
   revalidatePath("/sitemap.xml");
 }
