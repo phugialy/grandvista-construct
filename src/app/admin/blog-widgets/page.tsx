@@ -18,6 +18,8 @@ type BlogSettings = {
   webhook_payload_notes: string | null;
   enabled: boolean;
   webhook_secret_hash: string | null;
+  embed_container_id: string | null;
+  embed_script_url: string | null;
   default_status: "draft" | "published";
   posts_per_page: number;
   last_sync_status: string | null;
@@ -232,6 +234,47 @@ export default async function AdminBlogWidgetsPage({
                   type="password"
                 />
               </label>
+
+              <div className="border border-ink/10 bg-warm-white p-4">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                  Soro embed snippet
+                </p>
+                <p className="mt-2 text-sm leading-6 text-steel">
+                  Paste the full snippet from Soro here, or fill the container/script fields below.
+                  The system stores only the target div id and approved script URL.
+                </p>
+                <textarea
+                  className={`${inputClass} mt-4 min-h-28 w-full`}
+                  name="embed_snippet"
+                  placeholder={'<div id="soro-blog"></div>\n<script src="https://app.trysoro.com/api/embed/..." defer></script>'}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[0.72fr_1.28fr]">
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                    Embed container id
+                  </span>
+                  <input
+                    className={inputClass}
+                    defaultValue={blogSettings?.embed_container_id ?? "soro-blog"}
+                    name="embed_container_id"
+                    placeholder="soro-blog"
+                  />
+                </label>
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">
+                    Embed script URL
+                  </span>
+                  <input
+                    className={inputClass}
+                    defaultValue={blogSettings?.embed_script_url ?? ""}
+                    name="embed_script_url"
+                    placeholder="https://app.trysoro.com/api/embed/..."
+                    type="url"
+                  />
+                </label>
+              </div>
 
               <label className="grid gap-2">
                 <span className="text-xs font-black uppercase tracking-[0.12em] text-steel">

@@ -4,6 +4,7 @@ import { ArrowUpRight, FileText } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { SoroBlogEmbed } from "@/components/marketing/soro-blog-embed";
 import type { BlogIntegrationSettings, PublishedBlogPost } from "@/lib/supabase/public-data";
 
 type BlogWidgetPageProps = {
@@ -22,6 +23,9 @@ export function BlogWidgetPage({
   title = "Construction thinking for business spaces.",
 }: BlogWidgetPageProps) {
   const enabled = Boolean(settings?.enabled);
+  const embedContainerId = settings?.embed_container_id?.trim() || "soro-blog";
+  const embedScriptUrl = settings?.embed_script_url?.trim() ?? "";
+  const showEmbed = enabled && Boolean(embedScriptUrl);
 
   return (
     <MarketingShell>
@@ -61,6 +65,12 @@ export function BlogWidgetPage({
             Talk through a project <ArrowUpRight size={16} />
           </Link>
         </div>
+
+        {showEmbed ? (
+          <div className="mt-12 border border-ink/12 bg-white p-6">
+            <SoroBlogEmbed containerId={embedContainerId} scriptUrl={embedScriptUrl} />
+          </div>
+        ) : null}
 
         {posts.length > 0 ? (
           <div className="mt-12 grid gap-6 lg:grid-cols-3">

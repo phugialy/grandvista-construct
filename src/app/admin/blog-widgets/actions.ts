@@ -32,6 +32,41 @@ function normalizeInstallStatus(value: string) {
   return "not_started";
 }
 
+function normalizeEmbedContainerId(value: string) {
+  const cleaned = value.replace(/^#/, "").trim();
+
+  if (/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(cleaned)) {
+    return cleaned;
+  }
+
+  return "soro-blog";
+}
+
+function normalizeEmbedScriptUrl(value: string) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const url = new URL(value);
+
+    if (url.protocol === "https:" && url.hostname === "app.trysoro.com" && url.pathname.startsWith("/api/embed/")) {
+      return url.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function parseEmbedSnippet(value: string) {
+  const containerId = value.match(/<div[^>]+id=["']([^"']+)["'][^>]*>/i)?.[1] ?? "";
+  const scriptUrl = value.match(/<script[^>]+src=["']([^"']+)["'][^>]*>/i)?.[1] ?? "";
+
+  return { containerId, scriptUrl };
+}
+
 function revalidateBlog() {
   revalidateTag("blog-settings", "default");
   revalidateTag("published-blog-posts", "default");
@@ -48,9 +83,19 @@ export async function updateBlogIntegration(formData: FormData) {
   const postsPerPage = Number.parseInt(getString(formData, "posts_per_page"), 10);
   const webhookSecret = getString(formData, "webhook_secret");
   const outboundApiKey = getString(formData, "outbound_api_key");
+  const embedSnippet = getString(formData, "embed_snippet");
+  const parsedEmbed = parseEmbedSnippet(embedSnippet);
+  const embedContainerId = normalizeEmbedContainerId(
+    getString(formData, "embed_container_id") || parsedEmbed.containerId,
+  );
+  const embedScriptUrl = normalizeEmbedScriptUrl(
+    getString(formData, "embed_script_url") || parsedEmbed.scriptUrl,
+  );
   const payload: Record<string, unknown> = {
     enabled: formData.get("enabled") === "on",
     default_status: defaultStatus === "published" ? "published" : "draft",
+    embed_container_id: embedContainerId,
+    embed_script_url: embedScriptUrl,
     outbound_api_base_url: nullableString(formData, "outbound_api_base_url"),
     posts_per_page: Number.isFinite(postsPerPage) ? Math.min(Math.max(postsPerPage, 3), 24) : 9,
     provider_account_email: nullableString(formData, "provider_account_email"),

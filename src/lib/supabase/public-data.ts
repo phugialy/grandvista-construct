@@ -80,6 +80,8 @@ export type BlogIntegrationSettings = {
   provider: string;
   enabled: boolean;
   default_status: "draft" | "published";
+  embed_container_id: string | null;
+  embed_script_url: string | null;
   posts_per_page: number;
   featured_post_id: string | null;
   last_sync_status: string | null;
@@ -238,7 +240,7 @@ export async function getBlogSettings(): Promise<BlogIntegrationSettings | null>
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("blog_integration_settings")
-    .select("id,provider,enabled,default_status,posts_per_page,featured_post_id,last_sync_status,last_sync_at")
+    .select("id,provider,enabled,default_status,embed_container_id,embed_script_url,posts_per_page,featured_post_id,last_sync_status,last_sync_at")
     .eq("provider", "soro")
     .maybeSingle();
 
