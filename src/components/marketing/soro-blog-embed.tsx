@@ -7,6 +7,19 @@ type SoroBlogEmbedProps = {
   scriptUrl: string;
 };
 
+const SORO_EMBED_CACHE_VERSION = "20260625";
+
+function withStableCacheVersion(scriptUrl: string) {
+  try {
+    const url = new URL(scriptUrl);
+    url.searchParams.set("grandvista_embed_version", SORO_EMBED_CACHE_VERSION);
+    return url.toString();
+  } catch {
+    const separator = scriptUrl.includes("?") ? "&" : "?";
+    return `${scriptUrl}${separator}grandvista_embed_version=${SORO_EMBED_CACHE_VERSION}`;
+  }
+}
+
 export function SoroBlogEmbed({ containerId, scriptUrl }: SoroBlogEmbedProps) {
   useEffect(() => {
     if (!containerId || !scriptUrl) {
@@ -24,7 +37,7 @@ export function SoroBlogEmbed({ containerId, scriptUrl }: SoroBlogEmbedProps) {
     const script = document.createElement("script");
     script.dataset.grandvistaSoroEmbed = containerId;
     script.defer = true;
-    script.src = scriptUrl;
+    script.src = withStableCacheVersion(scriptUrl);
     document.body.appendChild(script);
 
     return () => {
