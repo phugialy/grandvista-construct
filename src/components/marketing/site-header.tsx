@@ -14,11 +14,11 @@ export function SiteHeader() {
       <div className="section-shell flex min-h-20 items-center justify-between gap-6 py-3">
         <Link href="/" className="flex min-w-0 items-center gap-3">
           <Image
-            src="/grandvista-mark.png"
+            src="/grandvista-mark-transparent.png"
             alt="Grandvista"
             width={58}
             height={58}
-            className="h-12 w-12 shrink-0 bg-white object-contain p-1"
+            className="h-12 w-12 shrink-0 object-contain"
             priority
           />
           <div className="min-w-0">
