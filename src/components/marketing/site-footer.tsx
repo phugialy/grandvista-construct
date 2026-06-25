@@ -14,7 +14,7 @@ export function SiteFooter() {
               alt="Grandvista"
               width={74}
               height={74}
-              className="h-16 w-16 bg-white object-contain p-1"
+              className="gv-logo-mark h-16 w-16 object-contain p-1"
             />
             <div>
               <p className="text-2xl font-black tracking-[0.18em]">GRANDVISTA</p>

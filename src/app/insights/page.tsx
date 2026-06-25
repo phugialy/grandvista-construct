@@ -19,5 +19,13 @@ export const metadata: Metadata = {
 export default async function InsightsPage() {
   const [settings, posts] = await Promise.all([getBlogSettings(), getPublishedBlogPosts()]);
 
-  return <BlogWidgetPage posts={posts} settings={settings} />;
+  return (
+    <BlogWidgetPage
+      copy="Practical construction notes for owners, operators, and project teams thinking through project readiness, field coordination, schedule pressure, and usable built outcomes."
+      eyebrow="Insights"
+      posts={posts}
+      settings={settings}
+      title="Grandvista Insights"
+    />
+  );
 }

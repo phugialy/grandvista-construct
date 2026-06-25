@@ -18,7 +18,7 @@ export function SiteHeader() {
             alt="Grandvista"
             width={58}
             height={58}
-            className="h-12 w-12 shrink-0 object-contain"
+            className="gv-logo-mark h-12 w-12 shrink-0 object-contain p-1"
             priority
           />
           <div className="min-w-0">
