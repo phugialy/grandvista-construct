@@ -52,26 +52,33 @@ export function SectionMediaHeroCarousel({
 
   return (
     <section
-      className="bg-ink text-white"
+      className="relative isolate overflow-hidden bg-ink text-white"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="section-shell grid gap-10 py-16 lg:grid-cols-[1.06fr_0.94fr] lg:items-center">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(8,9,106,0.74),transparent_34%),linear-gradient(135deg,#10131a,#08096a)]" />
+      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/88 to-navy/62" />
+      <div className="absolute inset-0 gv-grid-dark opacity-70" />
+      <div className="pointer-events-none absolute right-[-2vw] top-10 hidden text-[28vw] leading-none text-white/[0.035] lg:block gv-display">
+        GV
+      </div>
+      <div className="section-shell relative z-10 grid gap-10 py-16 lg:grid-cols-[1.06fr_0.94fr] lg:items-center">
         <div>
           <p className="eyebrow">Project Stories</p>
-          <h1 className="mt-5 max-w-5xl text-4xl font-black leading-[0.98] [overflow-wrap:anywhere] sm:text-6xl lg:text-7xl">
+          <h1 className="gv-display mt-5 max-w-5xl text-[4rem] leading-[0.9] [overflow-wrap:anywhere] sm:text-[6rem] lg:text-[7rem]">
             {title}
+            <span className="text-brand-red">.</span>
           </h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-white/72">{copy}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
-              className="inline-flex h-12 items-center justify-center gap-2 bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
+              className="inline-flex h-14 items-center justify-center gap-2 bg-brand-red px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-white hover:text-navy"
               href={primaryHref}
             >
               {primaryLabel} <ArrowUpRight size={18} />
             </Link>
             <Link
-              className="inline-flex h-12 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
+              className="inline-flex h-14 items-center justify-center border border-white/22 px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:border-brand-red hover:text-brand-red"
               href={secondaryHref}
             >
               {secondaryLabel}

@@ -69,33 +69,42 @@ export default async function OurDirectionPage() {
 
   return (
     <MarketingShell>
-      <section className="border-b border-white/10 bg-ink text-white">
-        <div className="section-shell py-20">
-          <p className="eyebrow">Our Direction</p>
-          <h1 className="mt-6 max-w-7xl text-4xl font-black leading-[0.96] [overflow-wrap:anywhere] sm:text-7xl lg:text-8xl">
-            {heroSection?.headline ??
-              "Built for today's commercial projects. Structured for tomorrow's growth."}
-          </h1>
+      <section className="relative isolate overflow-hidden border-b border-white/10 bg-ink text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(8,9,106,0.74),transparent_34%),linear-gradient(135deg,#10131a,#08096a)]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/88 to-navy/62" />
+        <div className="absolute inset-0 gv-grid-dark opacity-70" />
+        <div className="pointer-events-none absolute right-[-2vw] top-10 hidden text-[28vw] leading-none text-white/[0.035] lg:block gv-display">
+          GV
+        </div>
+        <div className="section-shell relative z-10 flex min-h-[600px] items-end py-16">
+          <div className="w-full">
+            <p className="eyebrow">Our Direction</p>
+            <h1 className="gv-display mt-6 max-w-7xl text-[4rem] leading-[0.9] [overflow-wrap:anywhere] sm:text-[6.2rem] lg:text-[7.8rem]">
+              {heroSection?.headline ??
+                "Built for today's commercial projects. Structured for tomorrow's growth."}
+              <span className="text-brand-red">.</span>
+            </h1>
 
-          <div className="mt-10 grid gap-4 border-t border-white/12 pt-6 lg:grid-cols-[1.15fr_0.55fr_0.55fr_auto_auto] lg:items-stretch">
-            <p className="max-w-3xl text-base leading-8 text-white/72">
-              {heroSection?.body ??
-                "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."}
-            </p>
-            <VisionStat label="Today" value="Commercial focus" />
-            <VisionStat label="Tomorrow" value="Larger responsibility" />
-            <Link
-              className="inline-flex h-14 items-center justify-center bg-brand-red px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:bg-white hover:text-ink"
-              href="/company"
-            >
-              Company
-            </Link>
-            <Link
-              className="inline-flex h-14 items-center justify-center border border-white/28 px-6 text-sm font-black uppercase tracking-[0.08em] text-white transition hover:border-white hover:bg-white hover:text-ink"
-              href="/start-a-project"
-            >
-              Start
-            </Link>
+            <div className="mt-10 grid gap-4 border-t border-white/12 pt-6 lg:grid-cols-[1.15fr_0.55fr_0.55fr_auto_auto] lg:items-stretch">
+              <p className="max-w-3xl text-base leading-8 text-white/72">
+                {heroSection?.body ??
+                  "Grandvista is building more than a project list. The company is building the systems, partnerships, documentation habits, and field discipline required for larger commercial, corporate, industrial, and technically demanding environments."}
+              </p>
+              <VisionStat label="Today" value="Commercial focus" />
+              <VisionStat label="Tomorrow" value="Larger responsibility" />
+              <Link
+                className="inline-flex h-14 items-center justify-center bg-brand-red px-6 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-white hover:text-navy"
+                href="/company"
+              >
+                Company
+              </Link>
+              <Link
+                className="inline-flex h-14 items-center justify-center border border-white/22 px-6 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:border-brand-red hover:text-brand-red"
+                href="/start-a-project"
+              >
+                Start
+              </Link>
+            </div>
           </div>
         </div>
       </section>
