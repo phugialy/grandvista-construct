@@ -42,7 +42,7 @@ export async function AdminNav({ title, description }: { title: string; descript
               Suggestions
             </Link>
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/blog-widgets">
-              Blog Widgets
+              Insights
             </Link>
             {session?.role === "master" ? (
               <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/users">

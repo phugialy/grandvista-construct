@@ -100,13 +100,13 @@ export default async function AdminBlogWidgetsPage({
   const providerName = blogSettings?.provider_display_name ?? "Sora AI";
   const webhookUrl = "https://grandvista-construction.com/api/integrations/sora/articles";
   const legacyWebhookUrl = "https://grandvista-construction.com/api/integrations/soro/articles";
-  const previewUrl = "https://grandvista-construction.com/blog-widgets";
+  const previewUrl = "https://grandvista-construction.com/insights";
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
       <AdminNav
-        title="Blog Widgets"
-        description="Control third-party article intake, review drafts, and publish Grandvista insights."
+        title="Insights"
+        description="Control the public Insights page, third-party article intake, review drafts, and publish Grandvista articles."
       />
 
       <section className="section-shell py-10">
@@ -193,8 +193,7 @@ export default async function AdminBlogWidgetsPage({
                     Enable blog widget
                   </span>
                   <span className="mt-1 block text-sm leading-6 text-steel">
-                    Allows the hidden preview page, future Insights page, and provider webhook
-                    workflow to operate.
+                    Allows the public Insights page and provider webhook workflow to operate.
                   </span>
                 </span>
               </label>
@@ -333,7 +332,7 @@ export default async function AdminBlogWidgetsPage({
               </label>
 
               <button className="bg-navy px-5 py-4 text-sm font-black uppercase tracking-[0.08em] text-white hover:bg-brand-red">
-                Save Blog Widget
+                Save Insights Setup
               </button>
             </form>
 
@@ -341,15 +340,15 @@ export default async function AdminBlogWidgetsPage({
               <div className="flex items-center gap-2">
                 <Eye className="text-brand-red" size={18} />
                 <p className="text-xs font-black uppercase tracking-[0.12em] text-steel">
-                  Hidden preview page
+                  Public Insights page
                 </p>
               </div>
               <p className="mt-3 break-all font-mono text-sm text-ink">{previewUrl}</p>
               <Link
                 className="mt-4 inline-flex items-center gap-2 border border-ink/12 px-4 py-3 text-xs font-black uppercase tracking-[0.08em] hover:border-brand-red hover:text-brand-red"
-                href="/blog-widgets"
+                href="/insights"
               >
-                Open Preview <Eye size={14} />
+                Open Insights <Eye size={14} />
               </Link>
             </div>
 

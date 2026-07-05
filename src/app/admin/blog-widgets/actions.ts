@@ -70,7 +70,6 @@ function parseEmbedSnippet(value: string) {
 function revalidateBlog() {
   revalidateTag("blog-settings", "default");
   revalidateTag("published-blog-posts", "default");
-  revalidatePath("/blog-widgets");
   revalidatePath("/insights");
   revalidatePath("/sitemap.xml");
 }
