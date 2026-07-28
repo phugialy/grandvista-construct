@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Start a Project | Talk to Grandvista Commercial Construction",
   description:
     "Start a commercial project conversation with Grandvista. Share the project type, stage, timeline, budget range, and what the space needs to make possible.",
+  alternates: {
+    canonical: "/start-a-project",
+  },
   openGraph: {
     title: "Start a Project | Talk to Grandvista Commercial Construction",
     description:

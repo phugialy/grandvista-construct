@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "How We Work | Construction Process | Grandvista",
   description:
     "Grandvista's 9-stage process covers project discovery through turnover discipline. Construction is built in the field, but won in the planning.",
+  alternates: {
+    canonical: "/how-we-work",
+  },
   openGraph: {
     title: "How We Work | Construction Process | Grandvista",
     description:

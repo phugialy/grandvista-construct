@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "What We Build | Commercial Construction Categories | Grandvista",
   description:
     "Grandvista builds commercial interiors, business build-outs, operational spaces, ground-up construction, and specialty commercial environments. Work organized around business use.",
+  alternates: {
+    canonical: "/what-we-build",
+  },
   openGraph: {
     title: "What We Build | Commercial Construction Categories | Grandvista",
     description:

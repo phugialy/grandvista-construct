@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Community | Grandvista",
   description:
     "Grandvista's own community hub - real project and market coverage for owners, operators, and project teams across DFW commercial and industrial construction.",
+  alternates: {
+    canonical: "/community",
+  },
   openGraph: {
     title: "Community | Grandvista",
     description:

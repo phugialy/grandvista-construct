@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Project Stories | Commercial Construction Proof | Grandvista",
   description:
     "Real commercial construction work organized around business outcomes. Project stories with intent, challenge, delivery approach, and built results — not just photo galleries.",
+  alternates: {
+    canonical: "/project-stories",
+  },
   openGraph: {
     title: "Project Stories | Commercial Construction Proof | Grandvista",
     description:

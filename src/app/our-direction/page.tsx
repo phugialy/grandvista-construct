@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "Our Direction | Built for What Comes Next | Grandvista",
   description:
     "Grandvista is building toward larger commercial, corporate, and industrial environments through stronger documentation habits, disciplined field standards, and deeper partnerships.",
+  alternates: {
+    canonical: "/our-direction",
+  },
   openGraph: {
     title: "Our Direction | Built for What Comes Next | Grandvista",
     description:

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Insights | Commercial Construction Notes | Grandvista",
   description:
     "Commercial construction insights from Grandvista, focused on project readiness, field coordination, business spaces, and owner-minded construction decisions.",
+  alternates: {
+    canonical: "/insights",
+  },
   openGraph: {
     title: "Insights | Commercial Construction Notes | Grandvista",
     description:

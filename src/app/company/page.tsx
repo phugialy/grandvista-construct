@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Company | About Grandvista Commercial Construction",
   description:
     "Grandvista is a commercial construction company grounded in planning, field coordination, and ownership-minded communication. Building toward larger commercial responsibility.",
+  alternates: {
+    canonical: "/company",
+  },
   openGraph: {
     title: "Company | About Grandvista Commercial Construction",
     description:
