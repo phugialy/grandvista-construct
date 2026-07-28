@@ -189,7 +189,7 @@ export async function POST(request: Request) {
       seo_description:
         getString(payload, ["seo_description", "meta_description"]) ||
         cleanSeoDescription(excerpt || body || title),
-      seo_title: getString(payload, ["seo_title", "meta_title"]) || `${title} | Grandvista Insights`,
+      seo_title: getString(payload, ["seo_title", "meta_title"]) || `${title} | Grandvista Community`,
       slug,
       source: "soro",
       status,
@@ -223,12 +223,12 @@ export async function POST(request: Request) {
     });
 
     revalidateTag("published-blog-posts", "default");
-    revalidatePath("/insights");
+    revalidatePath("/community");
     revalidatePath("/admin/blog-widgets");
 
     if (status === "published") {
       revalidateTag(`blog-post-${result.data.slug}`, "default");
-      revalidatePath(`/insights/${result.data.slug}`);
+      revalidatePath(`/community/${result.data.slug}`);
       revalidatePath("/sitemap.xml");
     }
 

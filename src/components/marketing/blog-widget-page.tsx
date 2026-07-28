@@ -11,9 +11,12 @@ type BlogWidgetPageProps = {
   eyebrow?: string;
   title?: string;
   copy?: string;
+  /** Where each post card links to - defaults to the Soro-embed "Insights" section's own route. */
+  basePath?: string;
 };
 
 export function BlogWidgetPage({
+  basePath = "/insights",
   copy = "Notes on planning, project readiness, field coordination, and the decisions that help commercial spaces move from idea to usable built environment.",
   eyebrow = "Article Space",
   posts,
@@ -85,7 +88,7 @@ export function BlogWidgetPage({
                   </p>
                   <Link
                     className="mt-7 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-red hover:text-navy"
-                    href={`/insights/${post.slug}`}
+                    href={`${basePath}/${post.slug}`}
                   >
                     Read Insight <ArrowUpRight size={14} />
                   </Link>

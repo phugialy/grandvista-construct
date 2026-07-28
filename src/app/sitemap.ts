@@ -13,6 +13,7 @@ const staticRoutes: Array<{
   { path: "/how-we-work", priority: 0.85, changeFrequency: "monthly" },
   { path: "/project-stories", priority: 0.9, changeFrequency: "weekly" },
   { path: "/insights", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/community", priority: 0.8, changeFrequency: "weekly" },
   { path: "/our-direction", priority: 0.75, changeFrequency: "monthly" },
   { path: "/company", priority: 0.75, changeFrequency: "monthly" },
   { path: "/start-a-project", priority: 0.9, changeFrequency: "monthly" },
@@ -39,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const blogPages = posts.map((post) => ({
-    url: `${siteUrl}/insights/${post.slug}`,
+    url: `${siteUrl}/community/${post.slug}`,
     lastModified: post.updated_at ? new Date(post.updated_at) : now,
     changeFrequency: "monthly" as const,
     priority: post.featured ? 0.75 : 0.65,
