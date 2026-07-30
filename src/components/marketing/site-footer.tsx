@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { navItems } from "@/lib/site-content";
+import { socialProfileLinks } from "@/lib/site-entity";
 
 export function SiteFooter() {
   return (
@@ -53,6 +54,26 @@ export function SiteFooter() {
             >
               Start a Project <ArrowUpRight size={18} />
             </Link>
+            {socialProfileLinks.length > 0 ? (
+              <div className="mt-8">
+                <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">
+                  Social Proof
+                </p>
+                <div className="mt-4 grid gap-3 text-sm font-bold text-white/76">
+                  {socialProfileLinks.map((url) => (
+                    <a
+                      className="hover:text-white"
+                      href={url}
+                      key={url}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {getSocialLabel(url)}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -63,4 +84,16 @@ export function SiteFooter() {
       </div>
     </footer>
   );
+}
+
+function getSocialLabel(url: string) {
+  if (url.includes("linkedin.com")) {
+    return "LinkedIn";
+  }
+
+  if (url.includes("facebook.com")) {
+    return "Facebook";
+  }
+
+  return "Grandvista Social";
 }

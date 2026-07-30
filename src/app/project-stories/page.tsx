@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Camera, FileText } from "lucide-react";
+import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { FeaturedProjectHeroCarousel } from "@/components/marketing/featured-project-hero-carousel";
 import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { PageHero } from "@/components/marketing/page-hero";
 import { SectionMediaHeroCarousel } from "@/components/marketing/section-media-hero-carousel";
+import { breadcrumbJsonLd } from "@/lib/schema";
 import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
 
 export const metadata: Metadata = {
@@ -52,6 +55,12 @@ export default async function ProjectStoriesPage() {
 
   return (
     <MarketingShell>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", url: "https://grandvista-construction.com" },
+          { name: "Project Stories", url: "https://grandvista-construction.com/project-stories" },
+        ]) as Record<string, unknown>}
+      />
       {featuredHeroProjects.length > 0 ? (
         <FeaturedProjectHeroCarousel projects={featuredHeroProjects} />
       ) : manualHeroMedia.length > 1 ? (
@@ -80,6 +89,12 @@ export default async function ProjectStoriesPage() {
           visualMedia={manualHeroMedia[0] ?? null}
         />
       )}
+
+      <AnswerBrief
+        answer="Grandvista project stories show completed work through the business purpose behind each project: what the client needed, what made the work matter, how the project was handled, and what usable outcome came from it."
+        points={["Project intent", "Construction pressure", "Delivery approach", "Built outcome"]}
+        question="How should Grandvista project proof be read?"
+      />
 
       <section className="section-shell py-20">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">

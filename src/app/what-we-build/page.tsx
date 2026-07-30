@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Building2, Factory, Store, UsersRound } from "lucide-react";
+import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { MediaShowcaseHero } from "@/components/marketing/media-showcase-hero";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
+import { breadcrumbJsonLd, serviceListJsonLd } from "@/lib/schema";
 import { getProjectCategories, getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 export const metadata: Metadata = {
@@ -83,6 +86,15 @@ export default async function WhatWeBuildPage() {
 
   return (
     <MarketingShell>
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", url: "https://grandvista-construction.com" },
+            { name: "What We Build", url: "https://grandvista-construction.com/what-we-build" },
+          ]) as Record<string, unknown>,
+          serviceListJsonLd(),
+        ]}
+      />
       {heroMedia.length > 0 ? (
         <MediaShowcaseHero
           copy={heroCopy}
@@ -108,6 +120,12 @@ export default async function WhatWeBuildPage() {
           visualMedia={null}
         />
       )}
+
+      <AnswerBrief
+        answer="Grandvista builds commercial interiors, tenant improvements, operational spaces, adaptive reuse work, specialty commercial scopes, and ground-up opportunities with attention to business use, opening readiness, field coordination, and long-term function."
+        points={["Commercial interiors", "Operational facilities", "Ground-up scopes", "Adaptive reuse"]}
+        question="What types of projects does Grandvista build?"
+      />
 
       <section className="section-shell py-20">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">

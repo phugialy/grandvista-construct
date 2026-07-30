@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Anton, Archivo, Geist_Mono } from "next/font/google";
 import { SupabaseRecoveryRedirect } from "@/components/admin/supabase-recovery-redirect";
+import { JsonLd } from "@/components/marketing/json-ld";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/schema";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -71,6 +73,7 @@ export default function RootLayout({
       className={`${archivo.variable} ${anton.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <JsonLd data={[organizationJsonLd() as Record<string, unknown>, websiteJsonLd() as Record<string, unknown>]} />
         <SupabaseRecoveryRedirect />
         {children}
       </body>

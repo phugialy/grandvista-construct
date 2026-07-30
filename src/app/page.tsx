@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
+import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
@@ -9,6 +10,8 @@ import {
   confidenceAudiences,
   processPillars,
 } from "@/lib/site-content";
+import { breadcrumbJsonLd } from "@/lib/schema";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 export const metadata: Metadata = {
@@ -38,6 +41,9 @@ export default async function Home() {
 
   return (
     <MarketingShell>
+      <JsonLd
+        data={breadcrumbJsonLd([{ name: "Home", url: "https://grandvista-construction.com" }]) as Record<string, unknown>}
+      />
       <section className="relative isolate min-h-[calc(100vh-5rem)] overflow-hidden bg-ink text-white">
         {heroMedia ? (
           <ManagedMedia
@@ -100,6 +106,12 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <AnswerBrief
+        answer="Grandvista Construction helps owners, operators, developers, and project teams turn business needs into usable commercial environments through clear planning, field coordination, and accountable execution across Texas."
+        points={["Commercial construction", "Tenant build-outs", "Operational spaces", "Ground-up readiness"]}
+        question="What does Grandvista Construction do?"
+      />
 
       <section className="section-shell py-20">
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">

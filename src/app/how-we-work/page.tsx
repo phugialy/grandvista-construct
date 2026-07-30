@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { AlertTriangle, ClipboardCheck, HardHat, MessageSquareText } from "lucide-react";
+import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { ProcessTree } from "@/components/marketing/process-tree";
+import { breadcrumbJsonLd, processListJsonLd } from "@/lib/schema";
 import { processWorkflowStages } from "@/lib/site-content";
 import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
@@ -70,6 +73,15 @@ export default async function HowWeWorkPage() {
 
   return (
     <MarketingShell>
+      <JsonLd
+        data={[
+          breadcrumbJsonLd([
+            { name: "Home", url: "https://grandvista-construction.com" },
+            { name: "How We Work", url: "https://grandvista-construction.com/how-we-work" },
+          ]) as Record<string, unknown>,
+          processListJsonLd(),
+        ]}
+      />
       <PageHero
         eyebrow="How We Work"
         title={heroSection?.headline ?? "Construction is built in the field, but won in the planning."}
@@ -86,6 +98,12 @@ export default async function HowWeWorkPage() {
           { label: "Standard", value: "Accountable execution" },
         ]}
         visualMedia={getSectionPrimaryMedia(heroSection)}
+      />
+
+      <AnswerBrief
+        answer="Grandvista manages commercial construction through a staged workflow: discovery, scope intelligence, budget awareness, schedule planning, permit readiness, trade coordination, field accountability, owner communication, and turnover discipline."
+        points={["Scope clarity", "Budget awareness", "Trade coordination", "Turnover discipline"]}
+        question="How does Grandvista manage a construction project?"
       />
 
       <ProcessTree stages={processStages} />
