@@ -1,25 +1,26 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { setAdminSession, validateAdminCredentials } from "@/lib/admin-auth";
+import { resolveAccountLogin } from "@/lib/account-login";
 
 export async function loginAdmin(formData: FormData) {
-  let session;
+  const email = formData.get("email");
+  const password = formData.get("password");
+  let redirectTo: string | null = null;
 
   try {
-    session = await validateAdminCredentials({
-      email: formData.get("email"),
-      password: formData.get("password"),
+    redirectTo = await resolveAccountLogin({
+      email: typeof email === "string" ? email : "",
+      password: typeof password === "string" ? password : "",
     });
   } catch (error) {
     console.error("Admin login failed", error);
     redirect("/admin/login?status=error");
   }
 
-  if (!session) {
+  if (!redirectTo) {
     redirect("/admin/login?status=invalid");
   }
 
-  await setAdminSession(session);
-  redirect(session.role === "master" ? "/admin/leads" : "/admin/website");
+  redirect(redirectTo);
 }

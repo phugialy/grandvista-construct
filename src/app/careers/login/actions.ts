@@ -1,9 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getSupabasePasswordAuthClient } from "@/lib/admin-auth";
-import { clearCandidateSession, findCandidateAuthUserByEmail, setCandidateSession } from "@/lib/candidate-auth";
-import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { resolveAccountLogin } from "@/lib/account-login";
+import { clearCandidateSession } from "@/lib/candidate-auth";
 
 function safeNext(value: string) {
   return value.startsWith("/careers/") ? value : "/careers/applications";
@@ -18,34 +17,22 @@ export async function loginCandidate(formData: FormData) {
     redirect(`/careers/login?status=missing&next=${encodeURIComponent(next)}`);
   }
 
-  const existingUser = await findCandidateAuthUserByEmail(email);
+  let redirectTo: string | null = null;
 
-  if (!existingUser) {
+  try {
+    redirectTo = await resolveAccountLogin({ email, password });
+  } catch (error) {
+    console.error("Candidate login failed", error);
     redirect(`/careers/login?status=invalid&next=${encodeURIComponent(next)}`);
   }
 
-  const authClient = getSupabasePasswordAuthClient();
-  const { data, error } = await authClient.auth.signInWithPassword({ email, password });
-
-  if (error || !data.user) {
+  if (!redirectTo) {
     redirect(`/careers/login?status=invalid&next=${encodeURIComponent(next)}`);
   }
 
-  await authClient.auth.signOut({ scope: "local" });
-
-  const supabase = getSupabaseServiceClient();
-  const { data: profile } = await supabase
-    .from("candidate_profiles")
-    .select("id")
-    .eq("auth_user_id", existingUser.id)
-    .maybeSingle();
-
-  if (!profile) {
-    redirect(`/careers/login?status=invalid&next=${encodeURIComponent(next)}`);
-  }
-
-  await setCandidateSession({ candidateId: profile.id, email });
-  redirect(next);
+  // A signed-in candidate honors the requested next page; anything else (e.g. an
+  // admin account signing in here) goes to whatever resolveAccountLogin decided.
+  redirect(redirectTo === "/careers/applications" ? next : redirectTo);
 }
 
 export async function logoutCandidate() {

@@ -58,7 +58,7 @@ export function getSupabasePasswordAuthClient() {
   });
 }
 
-async function getAdminAccount(authUserId: string): Promise<AdminAccount | null> {
+export async function getAdminAccount(authUserId: string): Promise<AdminAccount | null> {
   const supabase = getSupabaseServiceClient();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -83,54 +83,6 @@ async function getAdminAccount(authUserId: string): Promise<AdminAccount | null>
   }
 
   return data as AdminAccount;
-}
-
-export async function validateAdminCredentials({
-  email,
-  password,
-  username,
-}: {
-  email?: unknown;
-  password: unknown;
-  username?: unknown;
-}) {
-  const submittedEmail = typeof email === "string" ? email : username;
-
-  if (typeof submittedEmail !== "string" || typeof password !== "string") {
-    return null;
-  }
-
-  const normalizedEmail = submittedEmail.trim().toLowerCase();
-
-  if (!normalizedEmail || !password) {
-    return null;
-  }
-
-  const authClient = getSupabasePasswordAuthClient();
-  const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
-    email: normalizedEmail,
-    password,
-  });
-
-  if (authError || !authData.user) {
-    if (authError) {
-      console.error("Supabase admin auth failed", authError.message);
-    }
-    return null;
-  }
-
-  const account = await getAdminAccount(authData.user.id);
-  await authClient.auth.signOut({ scope: "local" });
-
-  if (!account) {
-    return null;
-  }
-
-  if (account.email.toLowerCase() !== normalizedEmail) {
-    return null;
-  }
-
-  return { email: account.email, role: account.role, username: account.email };
 }
 
 function base64UrlEncode(value: string) {
