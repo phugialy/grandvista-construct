@@ -1,5 +1,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { cleanSeoDescription, hashSecret, slugifyBlogTitle, splitTags } from "@/lib/blog";
+import { deriveCommunitySignal } from "@/lib/community-signals";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 type IncomingArticle = Record<string, unknown>;
@@ -180,6 +181,8 @@ export async function POST(request: Request) {
     const status = settings.default_status === "published" ? "published" : "draft";
     const publishedAt =
       status === "published" ? existingPost.data?.published_at ?? new Date().toISOString() : null;
+    const tags = getTags(payload);
+    const signal = deriveCommunitySignal({ title, excerpt, tags });
     const articlePayload = {
       body: body || null,
       excerpt: excerpt || null,
@@ -190,10 +193,13 @@ export async function POST(request: Request) {
         getString(payload, ["seo_description", "meta_description"]) ||
         cleanSeoDescription(excerpt || body || title),
       seo_title: getString(payload, ["seo_title", "meta_title"]) || `${title} | Grandvista Community`,
+      signal_area: signal.area,
+      signal_asset_class: signal.assetClass,
+      signal_type: signal.signalType,
       slug,
       source: "soro",
       status,
-      tags: getTags(payload),
+      tags,
       title,
       published_at: publishedAt,
       updated_at: new Date().toISOString(),

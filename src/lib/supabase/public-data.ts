@@ -101,9 +101,16 @@ export type PublishedBlogPost = {
   seo_title: string | null;
   seo_description: string | null;
   featured: boolean;
+  /** Computed once at ingestion (see the soro webhook), not derived on every render. */
+  signal_area: string | null;
+  signal_type: string | null;
+  signal_asset_class: string | null;
   published_at: string | null;
   updated_at: string | null;
 };
+
+const blogPostListColumns =
+  "id,title,slug,excerpt,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,signal_area,signal_type,signal_asset_class,published_at,updated_at";
 
 export function getSectionPrimaryMedia(section?: SiteSection) {
   if (!section || section.content_source === "fallback") {
@@ -261,9 +268,7 @@ export async function getPublishedBlogPosts(): Promise<PublishedBlogPost[]> {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("blog_posts")
-    .select(
-      "id,title,slug,excerpt,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
-    )
+    .select(blogPostListColumns)
     .eq("status", "published")
     .order("featured", { ascending: false })
     .order("published_at", { ascending: false });
@@ -276,6 +281,154 @@ export async function getPublishedBlogPosts(): Promise<PublishedBlogPost[]> {
   return (data ?? []) as PublishedBlogPost[];
 }
 
+/**
+ * The always-visible hero post for /community, decoupled from pagination and search
+ * so it never disappears or duplicates into the board grid below it.
+ */
+export async function getFeaturedBlogPost(): Promise<PublishedBlogPost | null> {
+  "use cache";
+  cacheTag("published-blog-posts");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("blog_posts")
+    .select(blogPostListColumns)
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load featured blog post", error);
+    return null;
+  }
+
+  return data as PublishedBlogPost | null;
+}
+
+/**
+ * How many distinct markets currently have coverage — a tiny single-column fetch,
+ * not the full archive, just to keep the "Markets" stat accurate up front.
+ */
+export async function getCommunityMarketCount(): Promise<number> {
+  "use cache";
+  cacheTag("published-blog-posts");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase.from("blog_posts").select("signal_area").eq("status", "published");
+
+  if (error) {
+    console.error("Failed to load community market count", error);
+    return 0;
+  }
+
+  return new Set((data ?? []).map((row) => row.signal_area).filter(Boolean)).size;
+}
+
+/**
+ * Paginated variant for the community list's default (no search/filter) view — avoids
+ * pulling the entire archive when a visitor is just browsing the first page. Shares
+ * the same cacheTag as getPublishedBlogPosts so a new post invalidates both.
+ */
+export async function getPublishedBlogPostsPage({
+  page,
+  pageSize,
+  excludeId,
+}: {
+  page: number;
+  pageSize: number;
+  excludeId?: string;
+}): Promise<{ posts: PublishedBlogPost[]; totalCount: number }> {
+  "use cache";
+  cacheTag("published-blog-posts");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let query = supabase
+    .from("blog_posts")
+    .select(blogPostListColumns, { count: "exact" })
+    .eq("status", "published");
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  const { data, error, count } = await query
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("Failed to load published blog posts page", error);
+    return { posts: [], totalCount: 0 };
+  }
+
+  return { posts: (data ?? []) as PublishedBlogPost[], totalCount: count ?? 0 };
+}
+
+/**
+ * Server-side, paginated search/filter for the community archive — replaces loading
+ * every post into the browser to filter client-side. Uses the trigram indexes on
+ * title/excerpt for the text search and the signal_area column for the market filter.
+ */
+export async function searchPublishedBlogPosts({
+  query: searchQuery,
+  area,
+  page,
+  pageSize,
+  excludeId,
+}: {
+  query: string;
+  area: string;
+  page: number;
+  pageSize: number;
+  excludeId?: string;
+}): Promise<{ posts: PublishedBlogPost[]; totalCount: number }> {
+  "use cache";
+  cacheTag("published-blog-posts");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let query = supabase
+    .from("blog_posts")
+    .select(blogPostListColumns, { count: "exact" })
+    .eq("status", "published");
+
+  if (excludeId) {
+    query = query.neq("id", excludeId);
+  }
+
+  if (area && area !== "All Markets") {
+    query = query.eq("signal_area", area);
+  }
+
+  const trimmedQuery = searchQuery.trim();
+
+  if (trimmedQuery) {
+    const term = trimmedQuery.replace(/[%_]/g, "");
+    query = query.or(`title.ilike.%${term}%,excerpt.ilike.%${term}%`);
+  }
+
+  const { data, error, count } = await query
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("Failed to search published blog posts", error);
+    return { posts: [], totalCount: 0 };
+  }
+
+  return { posts: (data ?? []) as PublishedBlogPost[], totalCount: count ?? 0 };
+}
+
 export async function getPublishedBlogPostBySlug(slug: string): Promise<PublishedBlogPost | null> {
   "use cache";
   cacheTag(`blog-post-${slug}`);
@@ -285,7 +438,7 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<Publishe
   const { data, error } = await supabase
     .from("blog_posts")
     .select(
-      "id,title,slug,excerpt,body,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
+      "id,title,slug,excerpt,body,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,signal_area,signal_type,signal_asset_class,published_at,updated_at",
     )
     .eq("slug", slug)
     .eq("status", "published")

@@ -2,26 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpRight, ChevronLeft, ChevronRight, LayoutGrid, LayoutList, MapPin, Search } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { AREA_OPTIONS, deriveCommunitySignal, type CommunitySignal } from "@/lib/community-signals";
 import type { PublishedBlogPost } from "@/lib/supabase/public-data";
-
-type SignalType =
-  | "All"
-  | "Corporate Moves"
-  | "Industrial Growth"
-  | "Retail / Experience"
-  | "Civic / Cultural"
-  | "Capital Movement"
-  | "Market Development";
-
-type CommunitySignal = {
-  area: string;
-  assetClass: string;
-  impact: string;
-  signalType: Exclude<SignalType, "All">;
-};
 
 type ViewMode = "editorial" | "compact";
 type AreaFilter = "All Markets" | string;
@@ -39,37 +24,86 @@ const pageSizeByView: Record<ViewMode, number> = {
   compact: 8,
 };
 
-export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[] }) {
+const AREA_FILTERS: AreaFilter[] = ["All Markets", ...AREA_OPTIONS];
+
+/** Older posts ingested before the signal columns existed fall back to a live text guess. */
+function getSignal(post: PublishedBlogPost): CommunitySignal {
+  if (post.signal_area && post.signal_type && post.signal_asset_class) {
+    return {
+      area: post.signal_area,
+      assetClass: post.signal_asset_class,
+      signalType: post.signal_type as CommunitySignal["signalType"],
+      impact: "",
+    };
+  }
+
+  return deriveCommunitySignal(post);
+}
+
+export function CommunityIntelligencePage({
+  featuredPost,
+  initialPosts,
+  marketCount,
+  totalCount,
+}: {
+  featuredPost: PublishedBlogPost | null;
+  initialPosts: PublishedBlogPost[];
+  marketCount: number;
+  totalCount: number;
+}) {
   const [activeArea, setActiveArea] = useState<AreaFilter>("All Markets");
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("compact");
   const [page, setPage] = useState(1);
+  const [searchResult, setSearchResult] = useState<{
+    key: string;
+    posts: PublishedBlogPost[];
+    totalCount: number;
+  } | null>(null);
 
-  const signals = useMemo(
-    () =>
-      posts.map((post) => ({
-        post,
-        signal: deriveCommunitySignal(post),
-      })),
-    [posts],
-  );
-  const areaFilters = useMemo(() => buildAreaFilters(signals), [signals]);
-
-  const featured = signals.find(({ post }) => post.featured) ?? signals[0] ?? null;
-  const filteredSignals = signals.filter(({ post, signal }) => {
-    const searchText = [post.title, post.excerpt, ...(post.tags ?? []), signal.area, signal.assetClass, signal.signalType]
-      .join(" ")
-      .toLowerCase();
-    const matchesFilter = activeArea === "All Markets" || signal.area === activeArea;
-    const matchesQuery = !query.trim() || searchText.includes(query.trim().toLowerCase());
-
-    return matchesFilter && matchesQuery;
-  });
-  const boardSignals = filteredSignals.filter(({ post }) => post.id !== featured?.post.id);
   const pageSize = pageSizeByView[viewMode];
-  const totalPages = Math.max(1, Math.ceil(boardSignals.length / pageSize));
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  // The initial server render already covers page 1 at the default page size — only
+  // hit the search API once a visitor actually searches, filters, pages, or switches views.
+  const isDefaultView = debouncedQuery.trim() === "" && activeArea === "All Markets" && page === 1 && pageSize === pageSizeByView.compact;
+  const requestKey = JSON.stringify({ q: debouncedQuery.trim(), area: activeArea, page, pageSize });
+
+  useEffect(() => {
+    if (isDefaultView) {
+      return;
+    }
+
+    let cancelled = false;
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (debouncedQuery.trim()) params.set("q", debouncedQuery.trim());
+    if (activeArea !== "All Markets") params.set("area", activeArea);
+    if (featuredPost?.id) params.set("excludeId", featuredPost.id);
+
+    fetch(`/api/community/search?${params.toString()}`)
+      .then((response) => response.json())
+      .then((data: { posts: PublishedBlogPost[]; totalCount: number }) => {
+        if (!cancelled) setSearchResult({ key: requestKey, ...data });
+      })
+      .catch((error: unknown) => console.error("Failed to search community posts", error));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isDefaultView, requestKey, debouncedQuery, activeArea, page, pageSize, featuredPost?.id]);
+
+  const loading = !isDefaultView && searchResult?.key !== requestKey;
+  const posts = isDefaultView ? initialPosts : (searchResult?.posts ?? []);
+  const boardTotal = isDefaultView ? totalCount : (searchResult?.totalCount ?? 0);
+  const boardSignals = posts.map((post) => ({ post, signal: getSignal(post) }));
+  const featuredSignal = featuredPost ? getSignal(featuredPost) : null;
+  const totalPages = Math.max(1, Math.ceil(boardTotal / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const visibleSignals = boardSignals.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <MarketingShell>
@@ -87,34 +121,34 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
               </p>
             </div>
             <div className="grid grid-cols-3 border border-ink/12 bg-white">
-              <Metric label="Signals" value={String(posts.length).padStart(2, "0")} />
-              <Metric label="Markets" value={String(countMarkets(signals)).padStart(2, "0")} />
+              <Metric label="Signals" value={String(totalCount).padStart(2, "0")} />
+              <Metric label="Markets" value={String(marketCount).padStart(2, "0")} />
               <Metric label="Focus" value="DFW" />
             </div>
           </div>
         </div>
       </section>
 
-      {featured ? (
+      {featuredPost && featuredSignal ? (
         <section className="bg-ink text-white">
           <div className="section-shell grid gap-8 py-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
             <div className="flex flex-col justify-between border border-white/12 bg-white/[0.03] p-7">
               <div>
                 <p className="eyebrow">Featured Signal</p>
                 <p className="mt-5 text-sm font-black uppercase tracking-[0.14em] text-white/50">
-                  {featured.signal.signalType} / {featured.signal.area}
+                  {featuredSignal.signalType} / {featuredSignal.area}
                 </p>
                 <h2 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">
-                  {featured.post.title}
+                  {featuredPost.title}
                 </h2>
                 <p className="mt-5 max-w-2xl leading-8 text-white/70">
-                  {featured.post.excerpt ?? featured.signal.impact}
+                  {featuredPost.excerpt ?? buildFallbackImpact(featuredSignal)}
                 </p>
               </div>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link
                   className="inline-flex h-13 items-center justify-center gap-2 bg-brand-red px-6 text-sm font-black uppercase tracking-[0.1em] text-white hover:bg-white hover:text-navy"
-                  href={`/community/${featured.post.slug}`}
+                  href={`/community/${featuredPost.slug}`}
                 >
                   Read Context <ArrowUpRight size={16} />
                 </Link>
@@ -126,7 +160,7 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
                 </Link>
               </div>
             </div>
-            <SignalMedia post={featured.post} />
+            <SignalMedia post={featuredPost} />
           </div>
         </section>
       ) : null}
@@ -171,7 +205,7 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
               </label>
 
               <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-                {areaFilters.map((filter) => (
+                {AREA_FILTERS.map((filter) => (
                   <button
                     className={`border px-4 py-3 text-left text-xs font-black uppercase tracking-[0.1em] transition ${
                       activeArea === filter
@@ -192,8 +226,8 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
 
               <div className="mt-5 border-t border-ink/10 pt-5">
                 <p className="text-sm font-bold text-steel">
-                  Showing {boardSignals.length === 0 ? "0" : `${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, boardSignals.length)}`} of{" "}
-                  {boardSignals.length} signals
+                  Showing {boardTotal === 0 ? "0" : `${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, boardTotal)}`} of{" "}
+                  {boardTotal} signals
                 </p>
                 <div className="mt-4 flex w-fit border border-ink/12 bg-warm-white p-1">
                   <ViewModeButton
@@ -237,9 +271,14 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
           </aside>
 
           <div>
-            <div className={viewMode === "compact" ? "grid gap-6 lg:grid-cols-2" : "grid gap-7"}>
-              {visibleSignals.length > 0 ? (
-                visibleSignals.map(({ post, signal }) =>
+            <div
+              aria-busy={loading}
+              className={`transition-opacity ${loading ? "opacity-60" : "opacity-100"} ${
+                viewMode === "compact" ? "grid gap-6 lg:grid-cols-2" : "grid gap-7"
+              }`}
+            >
+              {boardSignals.length > 0 ? (
+                boardSignals.map(({ post, signal }) =>
                   viewMode === "compact" ? (
                     <CompactSignalCard key={post.id} post={post} signal={signal} />
                   ) : (
@@ -254,7 +293,7 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
               )}
             </div>
 
-            {boardSignals.length > pageSize ? (
+            {totalPages > 1 ? (
               <PaginationControls
                 currentPage={currentPage}
                 onNext={() => setPage((value) => Math.min(totalPages, value + 1))}
@@ -267,6 +306,10 @@ export function CommunityIntelligencePage({ posts }: { posts: PublishedBlogPost[
       </section>
     </MarketingShell>
   );
+}
+
+function buildFallbackImpact(signal: CommunitySignal) {
+  return signal.impact || `${signal.signalType} in ${signal.area}.`;
 }
 
 function ViewModeButton({
@@ -295,6 +338,8 @@ function ViewModeButton({
 }
 
 function SignalCard({ post, signal }: { post: PublishedBlogPost; signal: CommunitySignal }) {
+  const impact = signal.impact || buildFallbackImpact(signal);
+
   return (
     <article className="group grid overflow-hidden border border-ink/12 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl lg:grid-cols-[0.48fr_0.52fr]">
       <div className="relative min-h-80 overflow-hidden bg-ink sm:min-h-96 lg:min-h-[420px]">
@@ -324,11 +369,11 @@ function SignalCard({ post, signal }: { post: PublishedBlogPost; signal: Communi
           {post.title}
         </h3>
         <p className="mt-5 max-w-2xl text-base leading-8 text-steel">
-          {post.excerpt ?? signal.impact}
+          {post.excerpt ?? impact}
         </p>
         <div className="mt-7 max-w-2xl border-l-4 border-brand-red bg-warm-white p-5">
           <p className="text-xs font-black uppercase tracking-[0.12em] text-navy">What this signals</p>
-          <p className="mt-2 text-sm leading-6 text-steel">{signal.impact}</p>
+          <p className="mt-2 text-sm leading-6 text-steel">{impact}</p>
         </div>
         <Link
           className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-brand-red hover:text-navy"
@@ -342,6 +387,8 @@ function SignalCard({ post, signal }: { post: PublishedBlogPost; signal: Communi
 }
 
 function CompactSignalCard({ post, signal }: { post: PublishedBlogPost; signal: CommunitySignal }) {
+  const impact = signal.impact || buildFallbackImpact(signal);
+
   return (
     <article className="group overflow-hidden border border-ink/12 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <div className="relative aspect-[16/10] overflow-hidden bg-ink">
@@ -373,7 +420,7 @@ function CompactSignalCard({ post, signal }: { post: PublishedBlogPost; signal: 
         </p>
         <h3 className="mt-3 text-2xl font-black leading-tight text-ink">{post.title}</h3>
         <p className="mt-4 line-clamp-3 text-sm leading-6 text-steel">
-          {post.excerpt ?? signal.impact}
+          {post.excerpt ?? impact}
         </p>
         <Link
           className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-brand-red hover:text-navy"
@@ -453,109 +500,4 @@ function Metric({ label, value }: { label: string; value: string }) {
       </p>
     </div>
   );
-}
-
-function deriveCommunitySignal(post: PublishedBlogPost): CommunitySignal {
-  const text = [post.title, post.excerpt, ...(post.tags ?? [])].join(" ").toLowerCase();
-  const area = deriveArea(text);
-  const signalType = deriveSignalType(text);
-  const assetClass = deriveAssetClass(text);
-
-  return {
-    area,
-    assetClass,
-    signalType,
-    impact: buildImpactSentence(signalType, area, assetClass),
-  };
-}
-
-function deriveArea(text: string) {
-  const areas = ["Plano", "Dallas", "Fort Worth", "Arlington", "Irving", "McKinney", "Frisco", "North Texas"];
-  const match = areas.find((area) => text.includes(area.toLowerCase()));
-
-  return match ?? "DFW";
-}
-
-function deriveSignalType(text: string): CommunitySignal["signalType"] {
-  if (hasAny(text, ["manufacturing", "industrial", "logistics", "semiconductor", "data center", "factory"])) {
-    return "Industrial Growth";
-  }
-
-  if (hasAny(text, ["headquarters", "hq", "corporate", "relocation", "campus"])) {
-    return "Corporate Moves";
-  }
-
-  if (hasAny(text, ["retail", "restaurant", "entertainment", "experience", "lifestyle"])) {
-    return "Retail / Experience";
-  }
-
-  if (hasAny(text, ["museum", "cultural", "municipal", "city hall", "festival", "stadium", "community"])) {
-    return "Civic / Cultural";
-  }
-
-  if (hasAny(text, ["investment", "acquisition", "funds", "pace", "capital", "billion"])) {
-    return "Capital Movement";
-  }
-
-  return "Market Development";
-}
-
-function deriveAssetClass(text: string) {
-  if (hasAny(text, ["data center", "colocation"])) return "Data Center";
-  if (hasAny(text, ["manufacturing", "industrial", "logistics", "factory"])) return "Industrial";
-  if (hasAny(text, ["apartment", "multifamily", "residential"])) return "Multifamily";
-  if (hasAny(text, ["retail", "restaurant", "entertainment", "lifestyle"])) return "Retail";
-  if (hasAny(text, ["office", "headquarters", "hq", "campus"])) return "Office";
-  if (hasAny(text, ["museum", "cultural", "festival", "stadium"])) return "Cultural";
-  if (hasAny(text, ["municipal", "city hall", "emergency services"])) return "Civic";
-
-  return "Commercial Market";
-}
-
-function buildImpactSentence(signalType: CommunitySignal["signalType"], area: string, assetClass: string) {
-  const areaText = area === "DFW" ? "the DFW market" : area;
-
-  switch (signalType) {
-    case "Corporate Moves":
-      return `Corporate movement in ${areaText} can reshape demand for office, interiors, support space, and nearby commercial services.`;
-    case "Industrial Growth":
-      return `Industrial activity in ${areaText} points to stronger demand for technical planning, site readiness, utilities, and operational space.`;
-    case "Retail / Experience":
-      return `Retail and experience-driven projects in ${areaText} show how customer-facing spaces are being repositioned for modern use.`;
-    case "Civic / Cultural":
-      return `Civic and cultural activity in ${areaText} can influence traffic patterns, community anchors, and surrounding commercial opportunity.`;
-    case "Capital Movement":
-      return `Capital movement around ${assetClass.toLowerCase()} assets signals where owners and operators may be preparing for future project activity.`;
-    default:
-      return `This ${assetClass.toLowerCase()} signal helps frame where commercial construction demand and owner decisions may be moving.`;
-  }
-}
-
-function hasAny(text: string, terms: string[]) {
-  return terms.some((term) => text.includes(term));
-}
-
-function countMarkets(signals: Array<{ signal: CommunitySignal }>) {
-  return new Set(signals.map(({ signal }) => signal.area)).size;
-}
-
-function buildAreaFilters(signals: Array<{ signal: CommunitySignal }>) {
-  const preferredOrder = [
-    "Plano",
-    "Dallas",
-    "Fort Worth",
-    "Arlington",
-    "Irving",
-    "McKinney",
-    "Frisco",
-    "North Texas",
-    "DFW",
-  ];
-  const areas = new Set(signals.map(({ signal }) => signal.area));
-  const sorted = preferredOrder.filter((area) => areas.has(area));
-  const remaining = Array.from(areas)
-    .filter((area) => !preferredOrder.includes(area))
-    .sort((a, b) => a.localeCompare(b));
-
-  return ["All Markets", ...sorted, ...remaining];
 }

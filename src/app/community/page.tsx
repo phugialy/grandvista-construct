@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { CommunityIntelligencePage } from "@/components/marketing/community-intelligence-page";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import { getPublishedBlogPosts } from "@/lib/supabase/public-data";
+import {
+  getCommunityMarketCount,
+  getFeaturedBlogPost,
+  getPublishedBlogPostsPage,
+} from "@/lib/supabase/public-data";
+
+const INITIAL_PAGE_SIZE = 12;
 
 export const metadata: Metadata = {
   title: "Community | Grandvista",
@@ -22,7 +28,11 @@ export const metadata: Metadata = {
 };
 
 export default async function CommunityPage() {
-  const posts = await getPublishedBlogPosts();
+  const featuredPost = await getFeaturedBlogPost();
+  const [{ posts, totalCount }, marketCount] = await Promise.all([
+    getPublishedBlogPostsPage({ page: 1, pageSize: INITIAL_PAGE_SIZE, excludeId: featuredPost?.id }),
+    getCommunityMarketCount(),
+  ]);
 
   return (
     <>
@@ -32,7 +42,12 @@ export default async function CommunityPage() {
           { name: "Community", url: "https://grandvista-construction.com/community" },
         ]) as Record<string, unknown>}
       />
-      <CommunityIntelligencePage posts={posts} />
+      <CommunityIntelligencePage
+        featuredPost={featuredPost}
+        initialPosts={posts}
+        marketCount={marketCount}
+        totalCount={totalCount}
+      />
     </>
   );
 }
