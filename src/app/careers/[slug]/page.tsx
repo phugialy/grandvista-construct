@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { ArrowLeft } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { LiteMarkdown } from "@/lib/lite-markdown";
 import { getCandidateProfile, getCandidateSession } from "@/lib/candidate-auth";
 import { getPublishedJobPostingBySlug, isJobPostingOpen } from "@/lib/supabase/public-data";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
@@ -95,11 +96,7 @@ async function JobPostingContent({ params, searchParams }: PageProps) {
         <article className="max-w-3xl">
           {posting.summary ? <p className="text-lg leading-8 text-steel">{posting.summary}</p> : null}
           {posting.description ? (
-            <div className="mt-7 grid gap-5 text-base leading-8 text-steel">
-              {posting.description.split(/\n{2,}/).map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
+            <LiteMarkdown className="mt-7 text-base leading-8 text-steel" value={posting.description} />
           ) : null}
         </article>
 
