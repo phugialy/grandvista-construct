@@ -93,7 +93,8 @@ export type PublishedBlogPost = {
   title: string;
   slug: string;
   excerpt: string | null;
-  body: string | null;
+  /** Only populated by getPublishedBlogPostBySlug — list fetches omit it to cut Supabase egress. */
+  body?: string | null;
   hero_image_url: string | null;
   hero_image_alt: string | null;
   tags: string[] | null;
@@ -261,7 +262,7 @@ export async function getPublishedBlogPosts(): Promise<PublishedBlogPost[]> {
   const { data, error } = await supabase
     .from("blog_posts")
     .select(
-      "id,title,slug,excerpt,body,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
+      "id,title,slug,excerpt,hero_image_url,hero_image_alt,tags,seo_title,seo_description,featured,published_at,updated_at",
     )
     .eq("status", "published")
     .order("featured", { ascending: false })
