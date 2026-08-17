@@ -299,6 +299,79 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<Publishe
   return data as PublishedBlogPost | null;
 }
 
+export type PublishedJobPosting = {
+  id: string;
+  slug: string;
+  title: string;
+  department: string | null;
+  location: string | null;
+  employment_type: string | null;
+  pay_range: string | null;
+  summary: string | null;
+  description: string | null;
+  status: "published" | "closed";
+  closes_at: string | null;
+  updated_at: string | null;
+};
+
+function isPostingEffectivelyOpen(posting: { status: string; closes_at: string | null }) {
+  if (posting.status !== "published") {
+    return false;
+  }
+
+  return !posting.closes_at || new Date(posting.closes_at) > new Date();
+}
+
+export async function getPublishedJobPostings(): Promise<PublishedJobPosting[]> {
+  "use cache";
+  cacheTag("published-job-postings");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select("id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,updated_at")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to load published job postings", error);
+    return [];
+  }
+
+  return ((data ?? []) as PublishedJobPosting[]).filter(isPostingEffectivelyOpen);
+}
+
+/**
+ * Returns the posting regardless of whether it's still open, so a closed posting's
+ * page can render a "this role has closed" state instead of 404ing — check
+ * isJobPostingOpen(posting) separately to decide whether to show the apply form.
+ */
+export async function getPublishedJobPostingBySlug(slug: string): Promise<PublishedJobPosting | null> {
+  "use cache";
+  cacheTag(`job-posting-${slug}`);
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("job_postings")
+    .select("id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,updated_at")
+    .eq("slug", slug)
+    .in("status", ["published", "closed"])
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load job posting", error);
+    return null;
+  }
+
+  return data as PublishedJobPosting | null;
+}
+
+export function isJobPostingOpen(posting: { status: string; closes_at: string | null }) {
+  return isPostingEffectivelyOpen(posting);
+}
+
 async function getFeaturedProjectsBySectionId(sectionIds: string[]) {
   const featuredProjectsBySectionId = new Map<string, PublishedProject[]>();
 

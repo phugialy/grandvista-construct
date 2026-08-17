@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck, UsersRound } from "lucide-react";
 import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { ManagedMedia } from "@/components/marketing/managed-media";
@@ -225,6 +225,29 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      <section className="border-y border-ink/10 bg-ink py-20 text-white">
+        <div className="section-shell grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <UsersRound className="text-brand-red" size={28} />
+            <p className="eyebrow mt-5">Join Us</p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-black leading-tight sm:text-5xl">
+              We&apos;re growing our team, not just our project list.
+            </h2>
+            <p className="mt-5 max-w-xl leading-8 text-white/70">
+              Field-first people who plan hard and hold the work accountable &mdash; that&apos;s who
+              builds this with us next.
+            </p>
+          </div>
+          <Link
+            href="/careers"
+            className="inline-flex h-14 w-fit items-center justify-center gap-2 bg-brand-red px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-white hover:text-navy"
+          >
+            See Careers <ArrowUpRight size={18} />
+          </Link>
+        </div>
+      </section>
+
       <FinalCta
         title="Bring the project behind the project into focus."
         copy="Start with what the space needs to make possible, then build toward scope, schedule, coordination, and turnover with more clarity."

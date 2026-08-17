@@ -38,6 +38,12 @@ export async function AdminNav({ title, description }: { title: string; descript
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/projects/new">
               New Project
             </Link>
+            <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/careers">
+              Careers
+            </Link>
+            <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/careers/new">
+              New Posting
+            </Link>
             <Link className="border border-white/18 px-4 py-2 hover:border-brand-red" href="/admin/suggestions">
               Suggestions
             </Link>

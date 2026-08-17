@@ -17,6 +17,7 @@ const staticRoutes: Array<{
   { path: "/our-direction", priority: 0.75, changeFrequency: "monthly" },
   { path: "/company", priority: 0.75, changeFrequency: "monthly" },
   { path: "/start-a-project", priority: 0.9, changeFrequency: "monthly" },
+  { path: "/careers", priority: 0.7, changeFrequency: "weekly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

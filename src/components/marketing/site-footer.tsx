@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { navItems } from "@/lib/site-content";
+import { footerUtilityLinks, navItems } from "@/lib/site-content";
 import { socialProfileLinks } from "@/lib/site-entity";
 
 export function SiteFooter() {
@@ -57,12 +57,12 @@ export function SiteFooter() {
             {socialProfileLinks.length > 0 ? (
               <div className="mt-8">
                 <p className="text-sm font-black uppercase tracking-[0.14em] text-brand-red">
-                  Social Proof
+                  Connect
                 </p>
-                <div className="mt-4 grid gap-3 text-sm font-bold text-white/76">
+                <div className="mt-4 grid gap-3">
                   {socialProfileLinks.map((url) => (
                     <a
-                      className="hover:text-white"
+                      className="flex min-h-12 items-center border border-white/12 px-4 py-3 text-sm font-black uppercase tracking-[0.08em] text-white/76 transition hover:border-brand-red hover:bg-white/[0.04] hover:text-white"
                       href={url}
                       key={url}
                       rel="noreferrer"
@@ -78,8 +78,21 @@ export function SiteFooter() {
         </div>
       </section>
       <div className="border-t border-white/10 py-5">
-        <div className="section-shell text-sm font-semibold text-white/46">
-          Built for today&apos;s commercial projects. Structured for tomorrow&apos;s growth.
+        <div className="section-shell flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-white/46">
+            Built for today&apos;s commercial projects. Structured for tomorrow&apos;s growth.
+          </p>
+          <div className="flex gap-6">
+            {footerUtilityLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-xs font-black uppercase tracking-[0.1em] text-white/62 hover:text-white"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

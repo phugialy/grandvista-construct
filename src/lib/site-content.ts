@@ -8,6 +8,10 @@ export const navItems = [
   { label: "Company", href: "/company" },
 ];
 
+/** Footer-only utility links (privacy, careers, etc.) — deliberately not part of navItems
+ * so they never appear in the primary header nav. */
+export const footerUtilityLinks = [{ label: "Careers", href: "/careers" }];
+
 export const buildCategories = [
   {
     title: "Commercial Environments",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { BriefcaseBusiness, HardHat, MessagesSquare, Route, UsersRound } from "lucide-react";
 import { FinalCta } from "@/components/marketing/final-cta";
@@ -145,14 +146,23 @@ export default async function CompanyPage({
         <div className="section-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <HardHat className="text-brand-red" size={32} />
-            <h2 className="mt-6 text-4xl font-black leading-tight">Future credibility pages</h2>
+            <h2 className="mt-6 text-4xl font-black leading-tight">More about Grandvista</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {["Safety & Quality", "Partners", "Careers", "Insights"].map((item) => (
-              <div key={item} className="border border-white/14 p-6 text-xl font-black">
-                {item}
-              </div>
-            ))}
+            <Link
+              className="border border-white/14 p-6 text-xl font-black transition hover:border-brand-red hover:text-brand-red"
+              href="/careers"
+            >
+              Careers
+            </Link>
+            <Link
+              className="border border-white/14 p-6 text-xl font-black transition hover:border-brand-red hover:text-brand-red"
+              href="/insights"
+            >
+              Insights
+            </Link>
+            <div className="border border-white/14 p-6 text-xl font-black opacity-60">Safety &amp; Quality</div>
+            <div className="border border-white/14 p-6 text-xl font-black opacity-60">Partners</div>
           </div>
         </div>
       </section>
