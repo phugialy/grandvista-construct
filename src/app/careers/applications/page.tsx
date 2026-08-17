@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { connection } from "next/server";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { getCandidateProfile, requireCandidate } from "@/lib/candidate-auth";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
@@ -24,7 +26,16 @@ const statusLabels: Record<ApplicationRow["status"], string> = {
   rejected: "Not moving forward",
 };
 
-export default async function MyApplicationsPage() {
+export default function MyApplicationsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyApplicationsContent />
+    </Suspense>
+  );
+}
+
+async function MyApplicationsContent() {
+  await connection();
   const session = await requireCandidate();
   const [profile, applications] = await Promise.all([
     getCandidateProfile(session.candidateId),
