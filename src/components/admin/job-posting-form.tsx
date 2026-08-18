@@ -1,4 +1,5 @@
 import { createJobPosting, deleteJobPosting, updateJobPosting } from "@/app/admin/careers/actions";
+import { JobPostingImageField } from "@/components/admin/job-posting-image-field";
 import { departments, employmentTypes } from "@/lib/admin-careers";
 
 type JobPostingFormData = {
@@ -103,20 +104,11 @@ export function JobPostingForm({ posting }: { posting?: JobPostingFormData }) {
 
         <section className="border border-ink/12 bg-white p-6">
           <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Hero image</p>
+          <p className="mt-2 text-xs font-normal text-steel">
+            Optional &mdash; the listing looks fine without one.
+          </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <label className="grid gap-2 font-bold">
-              Image URL
-              <span className="text-xs font-normal text-steel">
-                Optional. Paste a link to an already-hosted image &mdash; the listing looks fine without one.
-              </span>
-              <input
-                className={inputClass}
-                defaultValue={posting?.hero_image_url ?? ""}
-                name="hero_image_url"
-                placeholder="https://..."
-                type="url"
-              />
-            </label>
+            <JobPostingImageField defaultUrl={posting?.hero_image_url} />
             <label className="grid gap-2 font-bold">
               Alt text
               <span className="text-xs font-normal text-steel">Optional. Describe the image for accessibility.</span>
