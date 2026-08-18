@@ -465,7 +465,12 @@ export type PublishedJobPosting = {
   status: "published" | "closed";
   closes_at: string | null;
   updated_at: string | null;
+  hero_image_url: string | null;
+  hero_image_alt: string | null;
 };
+
+const jobPostingColumns =
+  "id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,updated_at,hero_image_url,hero_image_alt";
 
 function isPostingEffectivelyOpen(posting: { status: string; closes_at: string | null }) {
   if (posting.status !== "published") {
@@ -483,7 +488,7 @@ export async function getPublishedJobPostings(): Promise<PublishedJobPosting[]> 
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("job_postings")
-    .select("id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,updated_at")
+    .select(jobPostingColumns)
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
@@ -508,7 +513,7 @@ export async function getPublishedJobPostingBySlug(slug: string): Promise<Publis
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("job_postings")
-    .select("id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,updated_at")
+    .select(jobPostingColumns)
     .eq("slug", slug)
     .in("status", ["published", "closed"])
     .maybeSingle();

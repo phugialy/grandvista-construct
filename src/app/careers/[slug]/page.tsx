@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -77,18 +78,36 @@ async function JobPostingContent({ params, searchParams }: PageProps) {
   return (
     <MarketingShell>
       <section className="bg-ink text-white">
-        <div className="section-shell py-16">
-          <Link
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-white/70 hover:text-white"
-            href="/careers"
-          >
-            <ArrowLeft size={16} /> Back to Careers
-          </Link>
-          <p className="eyebrow mt-8">
-            {[posting.employment_type, posting.location].filter(Boolean).join(" · ")}
-          </p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[0.98] sm:text-6xl">{posting.title}</h1>
-          {posting.pay_range ? <p className="mt-5 text-lg font-bold text-white/80">{posting.pay_range}</p> : null}
+        <div
+          className={`section-shell py-16 ${
+            posting.hero_image_url ? "grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end" : ""
+          }`}
+        >
+          <div>
+            <Link
+              className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-white/70 hover:text-white"
+              href="/careers"
+            >
+              <ArrowLeft size={16} /> Back to Careers
+            </Link>
+            <p className="eyebrow mt-8">
+              {[posting.employment_type, posting.location].filter(Boolean).join(" · ")}
+            </p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[0.98] sm:text-6xl">{posting.title}</h1>
+            {posting.pay_range ? <p className="mt-5 text-lg font-bold text-white/80">{posting.pay_range}</p> : null}
+          </div>
+          {posting.hero_image_url ? (
+            <div className="relative min-h-72 overflow-hidden border border-white/12 bg-[#151925] sm:min-h-96">
+              <Image
+                alt={posting.hero_image_alt ?? posting.title}
+                className="object-cover opacity-90"
+                fill
+                priority
+                sizes="(min-width: 1024px) 52vw, 100vw"
+                src={posting.hero_image_url}
+              />
+            </div>
+          ) : null}
         </div>
       </section>
 

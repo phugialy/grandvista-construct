@@ -14,6 +14,8 @@ type JobPostingFormData = {
   status?: string;
   closes_at?: string | null;
   application_count?: number;
+  hero_image_url?: string | null;
+  hero_image_alt?: string | null;
 };
 
 const inputClass =
@@ -95,6 +97,30 @@ export function JobPostingForm({ posting }: { posting?: JobPostingFormData }) {
                 defaultValue={posting?.description ?? ""}
                 name="description"
               />
+            </label>
+          </div>
+        </section>
+
+        <section className="border border-ink/12 bg-white p-6">
+          <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Hero image</p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <label className="grid gap-2 font-bold">
+              Image URL
+              <span className="text-xs font-normal text-steel">
+                Optional. Paste a link to an already-hosted image &mdash; the listing looks fine without one.
+              </span>
+              <input
+                className={inputClass}
+                defaultValue={posting?.hero_image_url ?? ""}
+                name="hero_image_url"
+                placeholder="https://..."
+                type="url"
+              />
+            </label>
+            <label className="grid gap-2 font-bold">
+              Alt text
+              <span className="text-xs font-normal text-steel">Optional. Describe the image for accessibility.</span>
+              <input className={inputClass} defaultValue={posting?.hero_image_alt ?? ""} name="hero_image_alt" />
             </label>
           </div>
         </section>

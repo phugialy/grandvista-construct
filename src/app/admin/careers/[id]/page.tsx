@@ -16,7 +16,9 @@ export default async function EditJobPostingPage({ params }: { params: Promise<P
   const supabase = getSupabaseServiceClient();
   const { data: posting, error } = await supabase
     .from("job_postings")
-    .select("id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at")
+    .select(
+      "id,slug,title,department,location,employment_type,pay_range,summary,description,status,closes_at,hero_image_url,hero_image_alt",
+    )
     .eq("id", id)
     .single();
 

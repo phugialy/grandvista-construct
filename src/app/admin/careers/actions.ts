@@ -65,6 +65,8 @@ async function jobPostingPayload(formData: FormData, postingId?: string) {
     description: nullableString(formData, "description"),
     status,
     closes_at: closesAt ? new Date(closesAt).toISOString() : null,
+    hero_image_url: nullableString(formData, "hero_image_url"),
+    hero_image_alt: nullableString(formData, "hero_image_alt"),
     updated_at: new Date().toISOString(),
   };
 }
