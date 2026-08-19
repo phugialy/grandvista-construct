@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Anton, Archivo, Geist_Mono } from "next/font/google";
 import { SupabaseRecoveryRedirect } from "@/components/admin/supabase-recovery-redirect";
 import { JsonLd } from "@/components/marketing/json-ld";
@@ -62,6 +63,8 @@ export const metadata: Metadata = {
   },
 };
 
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -76,6 +79,19 @@ export default function RootLayout({
         <JsonLd data={[organizationJsonLd() as Record<string, unknown>, websiteJsonLd() as Record<string, unknown>]} />
         <SupabaseRecoveryRedirect />
         {children}
+        {gaMeasurementId ? (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} strategy="afterInteractive" />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}');
+              `}
+            </Script>
+          </>
+        ) : null}
       </body>
     </html>
   );
