@@ -2,12 +2,19 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Handshake } from "lucide-react";
+import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { PageHero } from "@/components/marketing/page-hero";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { getPublishedPartners } from "@/lib/supabase/public-data";
+
+const breadcrumbTrail = [
+  { name: "Home", href: "/" },
+  { name: "Company", href: "/company" },
+  { name: "Partners", href: "/partners" },
+];
 
 export const metadata: Metadata = {
   title: "Partners | Grandvista Construction",
@@ -33,12 +40,16 @@ export default async function PartnersPage() {
     <MarketingShell>
       <JsonLd
         data={[
-          breadcrumbJsonLd([
-            { name: "Home", url: "https://grandvista-construction.com" },
-            { name: "Partners", url: "https://grandvista-construction.com/partners" },
-          ]) as Record<string, unknown>,
+          breadcrumbJsonLd(
+            breadcrumbTrail.map((item) => ({
+              name: item.name,
+              url: `https://grandvista-construction.com${item.href === "/" ? "" : item.href}`,
+            })),
+          ) as Record<string, unknown>,
         ]}
       />
+
+      <Breadcrumbs items={breadcrumbTrail} />
 
       <PageHero
         copy="Every project runs on real relationships — the suppliers, subcontractors, and trade partners who show up, deliver, and hold the same standard we do."
