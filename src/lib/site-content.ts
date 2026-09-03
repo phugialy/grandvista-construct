@@ -10,7 +10,10 @@ export const navItems = [
 
 /** Footer-only utility links (privacy, careers, etc.) — deliberately not part of navItems
  * so they never appear in the primary header nav. */
-export const footerUtilityLinks = [{ label: "Careers", href: "/careers" }];
+export const footerUtilityLinks = [
+  { label: "Careers", href: "/careers" },
+  { label: "Partners", href: "/partners" },
+];
 
 export const buildCategories = [
   {

@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 const inputClass =
   "min-h-12 border border-ink/14 bg-white p-4 text-base text-ink outline-none transition placeholder:text-steel/70 focus:border-navy";
 
-export function JobPostingImageField({ defaultUrl }: { defaultUrl?: string | null }) {
+export function ImageUploadField({ defaultUrl, name }: { defaultUrl?: string | null; name: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(defaultUrl ?? "");
   const [busy, setBusy] = useState(false);
@@ -90,7 +90,7 @@ export function JobPostingImageField({ defaultUrl }: { defaultUrl?: string | nul
 
   return (
     <div className="grid gap-3">
-      <input name="hero_image_url" type="hidden" value={url} />
+      <input name={name} type="hidden" value={url} />
 
       {url ? (
         <div className="relative overflow-hidden border border-ink/12 bg-ink">

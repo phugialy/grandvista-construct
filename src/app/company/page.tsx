@@ -162,7 +162,12 @@ export default async function CompanyPage({
               Insights
             </Link>
             <div className="border border-white/14 p-6 text-xl font-black opacity-60">Safety &amp; Quality</div>
-            <div className="border border-white/14 p-6 text-xl font-black opacity-60">Partners</div>
+            <Link
+              className="border border-white/14 p-6 text-xl font-black transition hover:border-brand-red hover:text-brand-red"
+              href="/partners"
+            >
+              Partners
+            </Link>
           </div>
         </div>
       </section>

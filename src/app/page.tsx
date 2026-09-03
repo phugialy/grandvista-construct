@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Building2, ClipboardCheck, Compass, ShieldCheck, UsersRound } from "lucide-react";
+import { ArrowUpRight, Building2, ClipboardCheck, Compass, Handshake, ShieldCheck, UsersRound } from "lucide-react";
 import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { ManagedMedia } from "@/components/marketing/managed-media";
@@ -12,7 +13,7 @@ import {
 } from "@/lib/site-content";
 import { breadcrumbJsonLd } from "@/lib/schema";
 import { JsonLd } from "@/components/marketing/json-ld";
-import { getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
+import { getPublishedPartners, getSectionPrimaryMedia, getSiteSections } from "@/lib/supabase/public-data";
 
 export const metadata: Metadata = {
   title: "Important Projects Deserve a Builder With Direction | Grandvista",
@@ -36,6 +37,8 @@ const proofPoints = [
 
 export default async function Home() {
   const sections = await getSiteSections();
+  const partners = await getPublishedPartners();
+  const featuredPartners = partners.filter((partner) => partner.featured).slice(0, 6);
   const heroSection = sections["home.hero"];
   const heroMedia = getSectionPrimaryMedia(heroSection);
 
@@ -223,6 +226,43 @@ export default async function Home() {
               <p className="mt-4 leading-7 text-steel">{item.text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="border-y border-ink/10 bg-white py-20">
+        <div className="section-shell grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <Handshake className="text-brand-red" size={28} />
+            <p className="eyebrow mt-5">Who We Work With</p>
+            <h2 className="mt-4 max-w-2xl text-4xl font-black leading-tight sm:text-5xl">
+              Trusted vendors and trade partners, held to the same standard.
+            </h2>
+            <p className="mt-5 max-w-xl leading-8 text-steel">
+              Every project runs on real relationships &mdash; suppliers and subcontractors who
+              show up and deliver.
+            </p>
+            {featuredPartners.length > 0 ? (
+              <div className="mt-8 flex flex-wrap items-center gap-8">
+                {featuredPartners.map((partner) =>
+                  partner.logo_url ? (
+                    <div className="relative h-10 w-32" key={partner.id}>
+                      <Image alt={partner.name} className="object-contain object-left" fill sizes="128px" src={partner.logo_url} />
+                    </div>
+                  ) : (
+                    <span className="text-sm font-black uppercase tracking-[0.1em] text-navy" key={partner.id}>
+                      {partner.name}
+                    </span>
+                  ),
+                )}
+              </div>
+            ) : null}
+          </div>
+          <Link
+            href="/partners"
+            className="inline-flex h-14 w-fit items-center justify-center gap-2 bg-navy px-8 text-sm font-black uppercase tracking-[0.14em] text-white transition hover:bg-brand-red"
+          >
+            See Partners <ArrowUpRight size={18} />
+          </Link>
         </div>
       </section>
 

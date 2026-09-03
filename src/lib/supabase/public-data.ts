@@ -599,3 +599,36 @@ async function getSectionMediaBySectionId(sectionIds: string[]) {
 
   return mediaBySectionId;
 }
+
+export type PublishedPartner = {
+  id: string;
+  slug: string;
+  name: string;
+  trade_category: string | null;
+  website_url: string | null;
+  blurb: string | null;
+  logo_url: string | null;
+  featured: boolean;
+};
+
+const partnerColumns = "id,slug,name,trade_category,website_url,blurb,logo_url,featured";
+
+export async function getPublishedPartners(): Promise<PublishedPartner[]> {
+  "use cache";
+  cacheTag("published-partners");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("vendor_partners")
+    .select(partnerColumns)
+    .eq("published", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Failed to load published partners", error);
+    return [];
+  }
+
+  return (data ?? []) as PublishedPartner[];
+}

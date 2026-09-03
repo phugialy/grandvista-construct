@@ -1,5 +1,5 @@
 import { createJobPosting, deleteJobPosting, updateJobPosting } from "@/app/admin/careers/actions";
-import { JobPostingImageField } from "@/components/admin/job-posting-image-field";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { departments, employmentTypes } from "@/lib/admin-careers";
 
 type JobPostingFormData = {
@@ -108,7 +108,7 @@ export function JobPostingForm({ posting }: { posting?: JobPostingFormData }) {
             Optional &mdash; the listing looks fine without one.
           </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <JobPostingImageField defaultUrl={posting?.hero_image_url} />
+            <ImageUploadField defaultUrl={posting?.hero_image_url} name="hero_image_url" />
             <label className="grid gap-2 font-bold">
               Alt text
               <span className="text-xs font-normal text-steel">Optional. Describe the image for accessibility.</span>
