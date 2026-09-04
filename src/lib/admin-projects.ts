@@ -1,3 +1,9 @@
+export const projectStatuses = [
+  { value: "announced", label: "Announced" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "completed", label: "Completed" },
+] as const;
+
 export const projectTypes = [
   "Commercial Interior",
   "Restaurant / Food Service",

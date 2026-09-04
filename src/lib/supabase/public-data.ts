@@ -24,6 +24,9 @@ export type PublishedProject = {
   tags: string[] | null;
   seo_title: string | null;
   seo_description: string | null;
+  /** The seed line an operator (or later, an AI draft step) writes the narrative from. */
+  intention: string | null;
+  project_status: "announced" | "in_progress" | "completed";
   project_intent: string | null;
   stakes: string | null;
   challenge: string | null;
@@ -32,6 +35,13 @@ export type PublishedProject = {
   featured: boolean;
   updated_at: string | null;
   project_media?: ProjectMedia[];
+  project_partners?: { vendor_partners: ProjectPartner | ProjectPartner[] | null }[];
+};
+
+export type ProjectPartner = {
+  id: string;
+  slug: string;
+  name: string;
 };
 
 export type ProjectMedia = {
@@ -42,7 +52,18 @@ export type ProjectMedia = {
   alt: string | null;
   caption: string | null;
   sort_order: number;
+  is_card_preview: boolean;
 };
+
+/** Flattens the nested project_partners(vendor_partners(...)) join into a plain list. */
+export function getProjectPartners(project: PublishedProject): ProjectPartner[] {
+  return (project.project_partners ?? [])
+    .map((row) => (Array.isArray(row.vendor_partners) ? row.vendor_partners[0] : row.vendor_partners))
+    .filter((partner): partner is ProjectPartner => Boolean(partner));
+}
+
+const projectColumns =
+  "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,intention,project_status,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order,is_card_preview),project_partners(vendor_partners(id,slug,name))";
 
 export type SiteSection = {
   id: string;
@@ -165,19 +186,18 @@ export async function getPublishedProjects(): Promise<PublishedProject[]> {
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("projects")
-    .select(
-      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order)",
-    )
+    .select(projectColumns)
     .eq("published", true)
     .order("featured", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("sort_order", { referencedTable: "project_media", ascending: true });
 
   if (error) {
     console.error("Failed to load published projects", error);
     return [];
   }
 
-  return (data ?? []) as PublishedProject[];
+  return (data ?? []) as unknown as PublishedProject[];
 }
 
 export async function getPublishedProjectBySlug(slug: string): Promise<PublishedProject | null> {
@@ -188,11 +208,10 @@ export async function getPublishedProjectBySlug(slug: string): Promise<Published
   const supabase = getSupabaseServiceClient();
   const { data, error } = await supabase
     .from("projects")
-    .select(
-      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,project_intent,stakes,challenge,delivery_approach,built_outcome,featured,updated_at,project_media(id,media_type,role,url,alt,caption,sort_order)",
-    )
+    .select(projectColumns)
     .eq("slug", slug)
     .eq("published", true)
+    .order("sort_order", { referencedTable: "project_media", ascending: true })
     .single();
 
   if (error) {
@@ -200,7 +219,145 @@ export async function getPublishedProjectBySlug(slug: string): Promise<Published
     return null;
   }
 
-  return data as PublishedProject;
+  return data as unknown as PublishedProject;
+}
+
+/**
+ * Up to `limit` spotlight projects (featured first, then most recent) for the list
+ * page's lead treatment — decoupled from pagination/filtering so it never disappears
+ * or duplicates into the grid below (see excludeIds on the paginated variants).
+ */
+export async function getFeaturedProjects(limit: number): Promise<PublishedProject[]> {
+  "use cache";
+  cacheTag("published-projects");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select(projectColumns)
+    .eq("published", true)
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("sort_order", { referencedTable: "project_media", ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error("Failed to load featured projects", error);
+    return [];
+  }
+
+  return (data ?? []) as unknown as PublishedProject[];
+}
+
+/** Distinct project types and markets across the whole library, for the stats strip. */
+export async function getProjectStoryFacets(): Promise<{ types: string[]; markets: string[] }> {
+  "use cache";
+  cacheTag("published-projects");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const { data, error } = await supabase.from("projects").select("project_type,location").eq("published", true);
+
+  if (error) {
+    console.error("Failed to load project story facets", error);
+    return { types: [], markets: [] };
+  }
+
+  const rows = data ?? [];
+  return {
+    types: Array.from(new Set(rows.map((row) => row.project_type).filter((v): v is string => Boolean(v)))),
+    markets: Array.from(new Set(rows.map((row) => row.location).filter((v): v is string => Boolean(v)))),
+  };
+}
+
+/**
+ * Paginated variant for the list's default (no filter) view — avoids pulling the
+ * full archive when a visitor is just browsing the first page.
+ */
+export async function getPublishedProjectsPage({
+  page,
+  pageSize,
+  excludeIds,
+}: {
+  page: number;
+  pageSize: number;
+  excludeIds?: string[];
+}): Promise<{ projects: PublishedProject[]; totalCount: number }> {
+  "use cache";
+  cacheTag("published-projects");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let query = supabase.from("projects").select(projectColumns, { count: "exact" }).eq("published", true);
+
+  if (excludeIds?.length) {
+    query = query.not("id", "in", `(${excludeIds.join(",")})`);
+  }
+
+  const { data, error, count } = await query
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("sort_order", { referencedTable: "project_media", ascending: true })
+    .range(from, to);
+
+  if (error) {
+    console.error("Failed to load published projects page", error);
+    return { projects: [], totalCount: 0 };
+  }
+
+  return { projects: (data ?? []) as unknown as PublishedProject[], totalCount: count ?? 0 };
+}
+
+/** Server-side, paginated filter for the project archive (type + status). */
+export async function searchPublishedProjects({
+  type,
+  status,
+  page,
+  pageSize,
+  excludeIds,
+}: {
+  type: string;
+  status: string;
+  page: number;
+  pageSize: number;
+  excludeIds?: string[];
+}): Promise<{ projects: PublishedProject[]; totalCount: number }> {
+  "use cache";
+  cacheTag("published-projects");
+  cacheLife({ revalidate: 300 });
+
+  const supabase = getSupabaseServiceClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let query = supabase.from("projects").select(projectColumns, { count: "exact" }).eq("published", true);
+
+  if (excludeIds?.length) {
+    query = query.not("id", "in", `(${excludeIds.join(",")})`);
+  }
+
+  if (type && type !== "All Types") {
+    query = query.eq("project_type", type);
+  }
+
+  if (status && status !== "All") {
+    query = query.eq("project_status", status);
+  }
+
+  const { data, error, count } = await query
+    .order("featured", { ascending: false })
+    .order("created_at", { ascending: false })
+    .order("sort_order", { referencedTable: "project_media", ascending: true })
+    .range(from, to);
+
+  if (error) {
+    console.error("Failed to search published projects", error);
+    return { projects: [], totalCount: 0 };
+  }
+
+  return { projects: (data ?? []) as unknown as PublishedProject[], totalCount: count ?? 0 };
 }
 
 export async function getSiteSections(): Promise<Record<string, SiteSection>> {

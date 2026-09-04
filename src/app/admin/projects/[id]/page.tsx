@@ -18,7 +18,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
   const { data: project, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,story_body,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
+      "id,slug,title,location,client_type,project_type,summary,intention,project_status,project_intent,story_body,built_outcome,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
     )
     .eq("id", id)
     .single();
@@ -27,15 +27,21 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
     notFound();
   }
 
-  const { data: media } = await supabase
-    .from("project_media")
-    .select("role,media_asset_id")
-    .eq("project_id", id)
-    .order("sort_order", { ascending: true });
+  const [{ data: media }, { data: partnerLinks }, { data: partners }, mediaAssets] = await Promise.all([
+    supabase
+      .from("project_media")
+      .select("role,media_asset_id,is_card_preview")
+      .eq("project_id", id)
+      .order("sort_order", { ascending: true }),
+    supabase.from("project_partners").select("partner_id").eq("project_id", id),
+    supabase.from("vendor_partners").select("id,name").order("sort_order", { ascending: true }),
+    getAssignableProjectMedia(id),
+  ]);
 
   const hero = media?.find((item) => item.role === "hero");
   const gallery = media?.filter((item) => item.role === "gallery").map((item) => item.media_asset_id).filter(Boolean) ?? [];
-  const mediaAssets = await getAssignableProjectMedia(id);
+  const cardPreview = media?.filter((item) => item.is_card_preview).map((item) => item.media_asset_id).filter(Boolean) ?? [];
+  const partnerIds = (partnerLinks ?? []).map((link) => link.partner_id);
 
   return (
     <main className="min-h-screen bg-warm-white text-ink">
@@ -56,10 +62,13 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
           </div>
         ) : null}
         <ProjectForm
+          partnerOptions={partners ?? []}
           project={{
             ...project,
             hero_asset_id: hero?.media_asset_id,
             gallery_asset_ids: gallery,
+            card_preview_asset_ids: cardPreview,
+            partner_ids: partnerIds,
           }}
           mediaAssets={mediaAssets}
         />

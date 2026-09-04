@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowUpRight, Camera, FileText } from "lucide-react";
+import { ArrowUpRight, Camera } from "lucide-react";
 import { AnswerBrief } from "@/components/marketing/answer-brief";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { FeaturedProjectHeroCarousel } from "@/components/marketing/featured-project-hero-carousel";
@@ -9,9 +8,18 @@ import { ManagedMedia } from "@/components/marketing/managed-media";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { JsonLd } from "@/components/marketing/json-ld";
 import { PageHero } from "@/components/marketing/page-hero";
+import { ProjectStoriesGrid } from "@/components/marketing/project-stories-grid";
 import { SectionMediaHeroCarousel } from "@/components/marketing/section-media-hero-carousel";
 import { breadcrumbJsonLd } from "@/lib/schema";
-import { getPublishedProjects, getSiteSections } from "@/lib/supabase/public-data";
+import {
+  getFeaturedProjects,
+  getProjectStoryFacets,
+  getPublishedProjectsPage,
+  getSiteSections,
+} from "@/lib/supabase/public-data";
+
+const INITIAL_PAGE_SIZE = 6;
+const FEATURED_COUNT = 3;
 
 export const metadata: Metadata = {
   title: "Project Stories | Commercial Construction Proof | Grandvista",
@@ -31,7 +39,17 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectStoriesPage() {
-  const [projects, sections] = await Promise.all([getPublishedProjects(), getSiteSections()]);
+  const featuredProjects = await getFeaturedProjects(FEATURED_COUNT);
+  const [sections, { projects: pageProjects, totalCount: gridTotalCount }, facets] = await Promise.all([
+    getSiteSections(),
+    getPublishedProjectsPage({
+      page: 1,
+      pageSize: INITIAL_PAGE_SIZE,
+      excludeIds: featuredProjects.map((project) => project.id),
+    }),
+    getProjectStoryFacets(),
+  ]);
+  const totalCount = gridTotalCount + featuredProjects.length;
   const heroSection = sections["project-stories.hero"];
   const emptySection = sections["project-stories.empty"];
   const featuredHeroProjects =
@@ -50,9 +68,6 @@ export default async function ProjectStoriesPage() {
   const heroCopy =
     heroSection?.body ??
     "The goal is not a gallery. Grandvista's proof should explain the project intent, what was at stake, the construction challenge, the delivery approach, and the built outcome.";
-  const projectTypes = getUniqueLabels(projects.map((project) => project.project_type));
-  const projectMarkets = getUniqueLabels(projects.map((project) => project.location));
-
   return (
     <MarketingShell>
       <JsonLd
@@ -117,95 +132,55 @@ export default async function ProjectStoriesPage() {
           </Link>
         </div>
 
-        {projects.length > 0 ? (
+        {totalCount > 0 ? (
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            <ProofMetric label="Stories" value={String(projects.length)} />
-            <ProofMetric label="Project Types" value={String(projectTypes.length || 1)} />
-            <ProofMetric label="Markets" value={String(projectMarkets.length || 1)} />
+            <ProofMetric label="Stories" value={String(totalCount)} />
+            <ProofMetric label="Project Types" value={String(facets.types.length || 1)} />
+            <ProofMetric label="Markets" value={String(facets.markets.length || 1)} />
           </div>
         ) : null}
 
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {projects.length === 0 ? (
-            <article className="grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
-              <div className="relative min-h-64 overflow-hidden bg-ink">
-                {emptySection?.media_assets ? (
-                  <ManagedEmptyMedia media={emptySection.media_assets} />
-                ) : (
-                  <>
-                    <div className="absolute inset-0 grid grid-cols-5 grid-rows-5">
-                      {Array.from({ length: 25 }).map((_, index) => (
-                        <div key={index} className="border border-white/[0.04]" />
-                      ))}
-                    </div>
-                    <Camera className="absolute bottom-6 left-6 text-brand-red" size={36} />
-                    <div className="absolute right-6 top-6 h-28 w-36 bg-white/14" />
-                    <div className="absolute bottom-6 right-6 h-20 w-44 bg-brand-red" />
-                  </>
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-                  Prepared for CMS content
-                </p>
-                <h3 className="mt-4 text-3xl font-black leading-tight">
-                  {emptySection?.headline ?? "Published case studies will appear here."}
-                </h3>
-                <p className="mt-5 leading-8 text-steel">
-                  {emptySection?.body ??
-                    "Each story should reframe the work from a basic project label into a business outcome: opening readiness, operational flow, inspection coordination, field constraints, and usable built value."}
-                </p>
-              </div>
-            </article>
-          ) : null}
-
-          {projects.map((project) => (
-            <article key={project.id} className="group border border-ink/12 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-              <div className="relative min-h-56 overflow-hidden bg-ink p-6 text-white">
-                {project.project_media?.find((media) => media.role === "hero" && media.media_type === "image")?.url ? (
-                  <Image
-                    alt={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.alt ?? project.title}
-                    className="object-cover opacity-72 transition duration-500 group-hover:scale-105 group-hover:opacity-86"
-                    fill
-                    sizes="(min-width: 1024px) 33vw, 100vw"
-                    src={project.project_media.find((media) => media.role === "hero" && media.media_type === "image")?.url ?? ""}
-                  />
-                ) : project.project_media?.find((media) => media.role === "hero" && media.media_type === "video")?.url ? (
-                  <video
-                    autoPlay
-                    className="absolute inset-0 h-full w-full object-cover opacity-80"
-                    loop
-                    muted
-                    playsInline
-                    src={project.project_media.find((media) => media.role === "hero" && media.media_type === "video")?.url}
-                  />
-                ) : (
-                  <>
-                    <FileText className="text-brand-red" size={30} />
-                    <p className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-white/60">
-                      Project Story
-                    </p>
-                  </>
-                )}
-                <div className="absolute bottom-4 left-4 bg-navy px-3 py-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-white">
-                  {[project.project_type, project.location].filter(Boolean).join(" - ")}
-                </div>
-              </div>
-              <div className="p-6">
-                <h3 className="gv-display text-3xl leading-none text-navy">{project.title}</h3>
-                <p className="mt-5 min-h-24 text-sm leading-7 text-steel">
-                  {project.summary ?? project.project_intent ?? project.stakes ?? project.built_outcome}
-                </p>
-                <Link
-                  className="mt-7 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-brand-red hover:text-navy"
-                  href={`/project-stories/${project.slug}`}
-                >
-                  Read the Story <ArrowUpRight size={14} />
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+        {totalCount === 0 ? (
+          <article className="mt-12 grid gap-8 border border-ink/12 bg-white p-8 lg:grid-cols-[0.78fr_1.22fr]">
+            <div className="relative min-h-64 overflow-hidden bg-ink">
+              {emptySection?.media_assets ? (
+                <ManagedEmptyMedia media={emptySection.media_assets} />
+              ) : (
+                <>
+                  <div className="absolute inset-0 grid grid-cols-5 grid-rows-5">
+                    {Array.from({ length: 25 }).map((_, index) => (
+                      <div key={index} className="border border-white/[0.04]" />
+                    ))}
+                  </div>
+                  <Camera className="absolute bottom-6 left-6 text-brand-red" size={36} />
+                  <div className="absolute right-6 top-6 h-28 w-36 bg-white/14" />
+                  <div className="absolute bottom-6 right-6 h-20 w-44 bg-brand-red" />
+                </>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
+                Prepared for CMS content
+              </p>
+              <h3 className="mt-4 text-3xl font-black leading-tight">
+                {emptySection?.headline ?? "Published case studies will appear here."}
+              </h3>
+              <p className="mt-5 leading-8 text-steel">
+                {emptySection?.body ??
+                  "Each story should reframe the work from a basic project label into a business outcome: opening readiness, operational flow, inspection coordination, field constraints, and usable built value."}
+              </p>
+            </div>
+          </article>
+        ) : (
+          <div className="mt-12">
+            <ProjectStoriesGrid
+              featuredProjects={featuredProjects}
+              initialProjects={pageProjects}
+              projectTypes={facets.types}
+              totalCount={gridTotalCount}
+            />
+          </div>
+        )}
       </section>
 
       <FinalCta
@@ -243,15 +218,5 @@ function ProofMetric({ label, value }: { label: string; value: string }) {
       <p className="text-xs font-black uppercase tracking-[0.14em] text-steel">{label}</p>
       <p className="mt-3 text-4xl font-black text-navy">{value}</p>
     </div>
-  );
-}
-
-function getUniqueLabels(values: Array<string | null>) {
-  return Array.from(
-    new Set(
-      values
-        .map((value) => value?.trim())
-        .filter((value): value is string => Boolean(value)),
-    ),
   );
 }

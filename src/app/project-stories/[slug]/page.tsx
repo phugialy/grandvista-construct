@@ -1,16 +1,28 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin } from "lucide-react";
-import Link from "next/link";
+import { MapPin } from "lucide-react";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { Breadcrumbs } from "@/components/marketing/breadcrumbs";
 import { FinalCta } from "@/components/marketing/final-cta";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { getPublishedProjectBySlug, type PublishedProject, type ProjectMedia } from "@/lib/supabase/public-data";
+import { ProjectMediaCarousel } from "@/components/marketing/project-media-carousel";
+import {
+  getProjectPartners,
+  getPublishedProjectBySlug,
+  type PublishedProject,
+  type ProjectMedia,
+} from "@/lib/supabase/public-data";
 
 type Params = {
   slug: string;
+};
+
+const statusBadge: Record<PublishedProject["project_status"], { label: string; className: string }> = {
+  announced: { label: "Coming Soon", className: "bg-navy text-white" },
+  in_progress: { label: "Under Construction", className: "bg-brand-red text-white" },
+  completed: { label: "Completed", className: "bg-white text-ink" },
 };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
@@ -74,18 +86,20 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
     notFound();
   }
 
-  const hero = project.project_media?.find((media) => media.role === "hero");
+  const hero = project.project_media?.find((media) => media.role === "hero") ?? null;
   const gallery = project.project_media?.filter((media) => media.role !== "hero") ?? [];
+  const partners = getProjectPartners(project);
   const kicker = [project.project_type, project.location].filter(Boolean).join(" / ");
   const facts = [
     { label: "Client Type", value: project.client_type },
     { label: "Project Type", value: project.project_type },
     { label: "Location", value: project.location },
   ].filter((fact) => hasContent(fact.value));
-  const storyParagraphs = formatStoryParagraphs(
-    project.story_body ?? project.summary ?? project.project_intent,
-  );
-  const jsonLd = buildProjectJsonLd(project, slug);
+  const badge = statusBadge[project.project_status];
+  const introParagraphs = formatParagraphs(project.project_intent ?? project.intention ?? project.summary);
+  const buildParagraphs = formatParagraphs(project.story_body);
+  const outcomeParagraphs = formatParagraphs(project.built_outcome);
+  const jsonLd = buildProjectJsonLd(project, slug, partners);
 
   return (
     <MarketingShell>
@@ -95,106 +109,112 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
         }}
         type="application/ld+json"
       />
-      <section className="bg-ink text-white">
-        <div className="section-shell py-16">
-          <Link
-            href="/project-stories"
-            className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.08em] text-white/70 hover:text-white"
-          >
-            <ArrowLeft size={16} /> Back to Project Stories
-          </Link>
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-            <div>
-              <p className="eyebrow">Project Story</p>
-              <h1 className="mt-5 max-w-5xl text-5xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
-                {project.title}
-              </h1>
-              {kicker ? (
-                <p className="mt-6 flex items-center gap-2 text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-                  <MapPin size={16} /> {kicker}
-                </p>
-              ) : null}
-            </div>
-            {facts.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {facts.map((fact) => (
-                  <Fact key={fact.label} label={fact.label} value={fact.value} />
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-white">
-        <div className="section-shell py-10">
-          <div className="relative min-h-[420px] overflow-hidden bg-ink">
-            {hero?.url && hero.media_type === "image" ? (
-              <Image
-                alt={hero.alt ?? project.title}
-                className="object-cover"
-                fill
-                priority
-                sizes="100vw"
-                src={hero.url}
-              />
-            ) : hero?.url && hero.media_type === "video" ? (
-              <video autoPlay className="absolute inset-0 h-full w-full object-cover" controls loop muted playsInline src={hero.url} />
-            ) : (
-              <div className="absolute inset-0 grid grid-cols-6 grid-rows-6">
-                {Array.from({ length: 36 }).map((_, index) => (
-                  <div key={index} className="border border-white/[0.04]" />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <Breadcrumbs
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Project Stories", href: "/project-stories" },
+          { name: project.title, href: `/project-stories/${slug}` },
+        ]}
+      />
 
-      {storyParagraphs.length > 0 ? (
-        <section className="section-shell py-14">
-          <article className="mx-auto max-w-4xl border border-ink/12 bg-white p-8 lg:p-12">
-            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">
-              Project Story
+      <section className="relative h-[clamp(26rem,52vw,35rem)] overflow-hidden text-white">
+        <HeroMedia hero={hero} title={project.title} />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/15" />
+        <div className="section-shell absolute inset-x-0 bottom-0 pb-10 pt-16">
+          <span className={`inline-flex px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.1em] ${badge.className}`}>
+            {badge.label}
+          </span>
+          <p className="eyebrow mt-4" style={{ color: "#ff5a70" }}>
+            Project Story
+          </p>
+          <h1 className="mt-2 max-w-4xl text-[clamp(2.2rem,4.6vw,3.6rem)] font-black leading-[0.96]" style={{ textWrap: "balance" }}>
+            {project.title}
+          </h1>
+          {kicker ? (
+            <p className="mt-4 flex items-center gap-2 text-sm font-black uppercase tracking-[0.1em] text-white/80">
+              <MapPin size={16} /> {kicker}
             </p>
-            <div className="mt-6 grid gap-5 text-lg leading-9 text-steel">
-              {storyParagraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
+          ) : null}
+          {facts.length > 0 ? (
+            <div className="mt-6 flex flex-wrap gap-6">
+              {facts.map((fact) => (
+                <div key={fact.label}>
+                  <p className="text-[0.6rem] font-black uppercase tracking-[0.06em] text-white/60">{fact.label}</p>
+                  <p className="mt-1 text-sm font-black">{fact.value}</p>
+                </div>
               ))}
             </div>
-          </article>
-        </section>
-      ) : null}
+          ) : null}
+        </div>
+      </section>
+
+      <section className="section-shell grid gap-10 py-14 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div>
+          {introParagraphs.length > 0 ? (
+            <div className="mb-7 max-w-[60ch]">
+              {introParagraphs.map((paragraph) => (
+                <p className="text-xl font-bold leading-[1.5] text-ink" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          {buildParagraphs.length > 0 ? (
+            <div className="mb-7 grid gap-4">
+              {buildParagraphs.map((paragraph) => (
+                <p className="max-w-[62ch] text-base leading-8 text-steel" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          {outcomeParagraphs.length > 0 ? (
+            <div className="border-l-4 border-brand-red py-1 pl-6">
+              {outcomeParagraphs.map((paragraph) => (
+                <p className="max-w-[58ch] text-lg font-bold leading-[1.65] text-ink" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <aside className="grid content-start gap-6">
+          {partners.length > 0 ? (
+            <div className="border border-ink/12 bg-white p-5">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-red">Built With</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {partners.map((partner) => (
+                  <span className="border border-ink/14 px-3 py-1.5 text-sm font-bold" key={partner.id}>
+                    {partner.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="border border-ink/12 bg-white p-5">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-brand-red">Talk Through a Project</p>
+            <p className="mt-3 text-sm leading-6 text-steel">
+              Have a project with similar pressure — schedule, site context, opening date?
+            </p>
+            <a
+              className="mt-5 flex h-12 items-center justify-center bg-navy px-4 text-xs font-black uppercase tracking-[0.08em] text-white transition hover:bg-brand-red"
+              href="/start-a-project"
+            >
+              Start a Conversation
+            </a>
+          </div>
+        </aside>
+      </section>
 
       {gallery.length > 0 ? (
-        <section className="border-y border-ink/10 bg-white py-20">
+        <section className="border-t border-ink/10 bg-white py-16">
           <div className="section-shell">
-            <p className="eyebrow">Project Media</p>
-            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight">
-              Visual proof that supports the project story.
-            </h2>
-            <div className="mt-10 grid gap-5 md:grid-cols-2">
-              {gallery.map((media) => (
-                <figure key={media.id} className="border border-ink/12 bg-warm-white p-4">
-                  <div className="relative min-h-80 overflow-hidden bg-ink">
-                    {media.media_type === "image" ? (
-                      <Image
-                        alt={media.alt ?? project.title}
-                        className="object-cover"
-                        fill
-                        sizes="(min-width: 768px) 50vw, 100vw"
-                        src={media.url}
-                      />
-                    ) : (
-                      <video autoPlay className="absolute inset-0 h-full w-full object-cover" controls loop muted playsInline src={media.url} />
-                    )}
-                  </div>
-                  {media.caption ? (
-                    <figcaption className="mt-4 text-sm font-bold text-steel">{media.caption}</figcaption>
-                  ) : null}
-                </figure>
-              ))}
-            </div>
+            <ProjectMediaCarousel items={gallery} title={project.title} />
           </div>
         </section>
       ) : null}
@@ -211,11 +231,22 @@ async function StoryPage({ params }: { params: Promise<Params> }) {
   );
 }
 
-function Fact({ label, value }: { label: string; value: string | null }) {
+function HeroMedia({ hero, title }: { hero: ProjectMedia | null; title: string }) {
+  if (hero?.url && hero.media_type === "image") {
+    return <Image alt={hero.alt ?? title} className="object-cover" fill priority sizes="100vw" src={hero.url} />;
+  }
+
+  if (hero?.url && hero.media_type === "video") {
+    return <video autoPlay className="absolute inset-0 h-full w-full object-cover" loop muted playsInline src={hero.url} />;
+  }
+
   return (
-    <div className="bg-white/8 p-5">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-brand-red">{label}</p>
-      <p className="mt-2 text-xl font-black">{value}</p>
+    <div className="absolute inset-0 bg-ink">
+      <div className="absolute inset-0 grid grid-cols-6 grid-rows-6">
+        {Array.from({ length: 36 }).map((_, index) => (
+          <div key={index} className="border border-white/[0.04]" />
+        ))}
+      </div>
     </div>
   );
 }
@@ -224,7 +255,7 @@ function hasContent(value?: string | null) {
   return Boolean(value?.trim());
 }
 
-function formatStoryParagraphs(value?: string | null) {
+function formatParagraphs(value?: string | null) {
   if (!value?.trim()) {
     return [];
   }
@@ -245,9 +276,10 @@ function buildSeoTitle(project: PublishedProject) {
 
 function buildSeoDescription(project: PublishedProject) {
   const source =
+    project.project_intent ??
+    project.intention ??
     project.summary ??
     project.story_body ??
-    project.project_intent ??
     [project.title, project.project_type, project.location].filter(Boolean).join(" / ");
 
   return cleanText(source).slice(0, 156) || undefined;
@@ -261,7 +293,11 @@ function getSocialImage(project: PublishedProject): ProjectMedia | null {
   );
 }
 
-function buildProjectJsonLd(project: PublishedProject, slug: string) {
+function buildProjectJsonLd(
+  project: PublishedProject,
+  slug: string,
+  partners: Array<{ id: string; slug: string; name: string }>,
+) {
   const url = `https://grandvista-construction.com/project-stories/${slug}`;
   const image = getSocialImage(project);
   const description = buildSeoDescription(project);
@@ -292,6 +328,10 @@ function buildProjectJsonLd(project: PublishedProject, slug: string) {
         "Commercial construction",
         "Construction project story",
       ].filter(Boolean),
+      mentions: partners.map((partner) => ({
+        "@type": "Organization",
+        name: partner.name,
+      })),
     },
     {
       "@context": "https://schema.org",
@@ -300,12 +340,18 @@ function buildProjectJsonLd(project: PublishedProject, slug: string) {
         {
           "@type": "ListItem",
           position: 1,
+          name: "Home",
+          item: "https://grandvista-construction.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
           name: "Project Stories",
           item: "https://grandvista-construction.com/project-stories",
         },
         {
           "@type": "ListItem",
-          position: 2,
+          position: 3,
           name: project.title,
           item: url,
         },

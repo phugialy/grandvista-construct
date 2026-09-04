@@ -3,7 +3,13 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { inferProjectTags, projectTags, projectTypes, slugifyProjectTitle } from "@/lib/admin-projects";
+import {
+  inferProjectTags,
+  projectStatuses,
+  projectTags,
+  projectTypes,
+  slugifyProjectTitle,
+} from "@/lib/admin-projects";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 function getString(formData: FormData, key: string) {
@@ -46,10 +52,12 @@ function fallbackSeoDescription(formData: FormData) {
   const title = getString(formData, "title");
   const projectType = getSelect(formData, "project_type", projectTypes);
   const location = nullableString(formData, "location");
+  const projectIntent = nullableString(formData, "project_intent");
   const summary = nullableString(formData, "summary");
   const storyBody = nullableString(formData, "story_body");
 
   const source =
+    projectIntent ??
     summary ??
     storyBody ??
     [
@@ -96,6 +104,14 @@ async function projectPayload(formData: FormData, projectId?: string) {
   const slug = await getUniqueSlug(getString(formData, "slug") || slugifyProjectTitle(title), projectId);
   const summary = nullableString(formData, "summary");
   const storyBody = nullableString(formData, "story_body");
+  const projectIntent = nullableString(formData, "project_intent");
+  const builtOutcome = nullableString(formData, "built_outcome");
+  const intention = nullableString(formData, "intention");
+  const projectStatus = getSelect(
+    formData,
+    "project_status",
+    projectStatuses.map((option) => option.value),
+  ) ?? "completed";
   const projectType = getSelect(formData, "project_type", projectTypes);
   const location = nullableString(formData, "location");
   const selectedTags = getSelections(formData, "tags", projectTags);
@@ -107,13 +123,16 @@ async function projectPayload(formData: FormData, projectId?: string) {
     client_type: nullableString(formData, "client_type"),
     project_type: projectType,
     summary,
+    intention,
+    project_status: projectStatus,
+    project_intent: projectIntent,
     story_body: storyBody,
+    built_outcome: builtOutcome,
     tags: selectedTags.length > 0
       ? selectedTags
       : inferProjectTags({ projectType, summary, storyBody }),
     seo_title: nullableString(formData, "seo_title") || fallbackSeoTitle(title, projectType, location),
     seo_description: nullableString(formData, "seo_description") || fallbackSeoDescription(formData),
-    project_intent: summary,
     featured: getBoolean(formData, "featured"),
     published: getBoolean(formData, "published"),
     updated_at: new Date().toISOString(),
@@ -142,6 +161,7 @@ export async function createProject(formData: FormData) {
   }
 
   await syncProjectMedia(data.id, formData);
+  await syncProjectPartners(data.id, formData);
   revalidateProjectPaths();
   redirect(`/admin/projects/${data.id}?status=created`);
 }
@@ -165,6 +185,7 @@ export async function updateProject(formData: FormData) {
   }
 
   await syncProjectMedia(projectId, formData);
+  await syncProjectPartners(projectId, formData);
   revalidateProjectPaths(payload.slug);
   redirect(`/admin/projects/${projectId}?status=saved`);
 }
@@ -208,6 +229,11 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
   const galleryAssetIds = formData
     .getAll("gallery_asset_ids")
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+  const cardPreviewAssetIds = new Set(
+    formData
+      .getAll("card_preview_asset_ids")
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0),
+  );
 
   const supabase = getSupabaseServiceClient();
   await supabase.from("project_media").delete().eq("project_id", projectId);
@@ -232,6 +258,7 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
     alt: string | null;
     caption: string | null;
     sort_order: number;
+    is_card_preview: boolean;
   };
 
   const rows: MediaRow[] = [];
@@ -247,6 +274,7 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
       alt: heroAsset.alt_text,
       caption: heroAsset.caption,
       sort_order: 10,
+      is_card_preview: false,
     });
   }
 
@@ -266,6 +294,7 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
       alt: asset.alt_text,
       caption: asset.caption,
       sort_order: 20 + index,
+      is_card_preview: cardPreviewAssetIds.has(asset.id),
     });
   });
 
@@ -275,6 +304,27 @@ async function syncProjectMedia(projectId: string, formData: FormData) {
     if (error) {
       console.error("Project media sync failed", error);
     }
+  }
+}
+
+async function syncProjectPartners(projectId: string, formData: FormData) {
+  const partnerIds = formData
+    .getAll("partner_ids")
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  const supabase = getSupabaseServiceClient();
+  await supabase.from("project_partners").delete().eq("project_id", projectId);
+
+  if (partnerIds.length === 0) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("project_partners")
+    .insert(partnerIds.map((partnerId) => ({ project_id: projectId, partner_id: partnerId })));
+
+  if (error) {
+    console.error("Project partner sync failed", error);
   }
 }
 
