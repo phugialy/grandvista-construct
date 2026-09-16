@@ -84,3 +84,26 @@ direct voice (short sentences, real details over adjectives, no marketing langua
 "state-of-the-art" or "premier"). The agent should never write specifics it wasn't
 given — a real photo caption or a supplied detail is fair game to reference; a
 guessed square footage or completion date is not.
+
+## Photos from Google Drive
+
+Originally planned as a fully automated "Sync from Drive" button using a Google Cloud
+service account. That setup wasn't available (service account provisioning blocked on
+the infrastructure side), so the working version today is session-assisted instead:
+
+1. Paste the project's Drive folder link into the "Google Drive Folder" field on the
+   project's admin edit page — this is a reference only, not a live sync trigger.
+2. In a Claude Code session (one with the Google Drive connector connected — check with
+   `/mcp` or the connector settings if unsure), ask Claude to pull the photos for that
+   project from the folder.
+3. Claude lists the folder's images via its own connected Drive access, downloads them
+   locally, and runs `scripts/import-drive-photos.mjs` to upload them into Supabase and
+   attach them to the project — see that script's header comment for the manifest format.
+
+Re-running the import for the same project is safe: anything already imported (tracked
+by `media_assets.source_drive_file_id`) is skipped, so only new photos added to the
+folder since last time come in.
+
+If a proper service-account integration becomes possible later, the schema
+(`projects.drive_folder_url`, `media_assets.source_drive_file_id`) already supports it —
+no migration would be needed, only a new sync mechanism to write those same columns.

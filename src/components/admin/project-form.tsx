@@ -37,6 +37,7 @@ type ProjectFormData = {
   gallery_asset_ids?: string[];
   card_preview_asset_ids?: string[];
   partner_ids?: string[];
+  drive_folder_url?: string | null;
 };
 
 const inputClass =
@@ -194,6 +195,26 @@ export function ProjectForm({
                 </label>
               ))}
             </div>
+          </section>
+        ) : null}
+
+        {project?.id ? (
+          <section className="border border-ink/12 bg-white p-6">
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-brand-red">Google Drive Folder</p>
+            <p className="mt-2 text-sm font-bold leading-6 text-steel">
+              Paste the folder link here for reference, then ask Claude to pull the photos into this
+              project in a chat session &mdash; re-running it only pulls new photos, nothing is imported twice.
+            </p>
+            <label className="mt-5 grid gap-2 font-bold">
+              Folder link
+              <input
+                className={inputClass}
+                defaultValue={project?.drive_folder_url ?? ""}
+                name="drive_folder_url"
+                placeholder="https://drive.google.com/drive/folders/..."
+                type="url"
+              />
+            </label>
           </section>
         ) : null}
 

@@ -18,7 +18,7 @@ export default async function EditProjectPage({ params }: { params: Promise<Para
   const { data: project, error } = await supabase
     .from("projects")
     .select(
-      "id,slug,title,location,client_type,project_type,summary,intention,project_status,project_intent,story_body,built_outcome,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published",
+      "id,slug,title,location,client_type,project_type,summary,intention,project_status,project_intent,story_body,built_outcome,client_goal,project_pressures,built_outcomes,tags,seo_title,seo_description,featured,published,drive_folder_url",
     )
     .eq("id", id)
     .single();

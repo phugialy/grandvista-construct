@@ -128,6 +128,7 @@ async function projectPayload(formData: FormData, projectId?: string) {
     project_intent: projectIntent,
     story_body: storyBody,
     built_outcome: builtOutcome,
+    drive_folder_url: nullableString(formData, "drive_folder_url"),
     tags: selectedTags.length > 0
       ? selectedTags
       : inferProjectTags({ projectType, summary, storyBody }),
