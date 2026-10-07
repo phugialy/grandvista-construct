@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getPublishedBlogPosts, getPublishedProjects } from "@/lib/supabase/public-data";
+import { getPublishedBlogPosts, getPublishedJobPostings, getPublishedProjects } from "@/lib/supabase/public-data";
 
 const siteUrl = "https://grandvista-construction.com";
 
@@ -23,7 +23,11 @@ const staticRoutes: Array<{
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const [projects, posts] = await Promise.all([getPublishedProjects(), getPublishedBlogPosts()]);
+  const [projects, posts, jobs] = await Promise.all([
+    getPublishedProjects(),
+    getPublishedBlogPosts(),
+    getPublishedJobPostings(),
+  ]);
   const staticPages = staticRoutes.map((route) => ({
     url: `${siteUrl}${route.path}`,
     lastModified: now,
@@ -49,5 +53,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     images: post.hero_image_url ? [post.hero_image_url] : [],
   }));
 
-  return [...staticPages, ...projectPages, ...blogPages];
+  const jobPages = jobs.map((job) => ({
+    url: `${siteUrl}/careers/${job.slug}`,
+    lastModified: job.updated_at ? new Date(job.updated_at) : now,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...projectPages, ...jobPages, ...blogPages];
 }
